@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "tsc"
   },
   "repository": {
     "type": "git",
@@ -15,5 +15,8 @@
   "bugs": {
     "url": "https://github.com/jsx-static/jsx-static-core/issues"
   },
-  "homepage": "https://github.com/jsx-static/jsx-static-core#readme"
+  "homepage": "https://github.com/jsx-static/jsx-static-core#readme",
+  "devDependencies": {
+    "typescript": "^3.5.2"
+  }
 }
