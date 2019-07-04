@@ -1,0 +1,1 @@
+# jsx-static-core
