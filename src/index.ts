@@ -1,1 +1,9 @@
-export default ():string => "hello world"
+import * as path from "path"
+
+function build() {
+  return "hello!"
+}
+
+export {
+  build
+}
