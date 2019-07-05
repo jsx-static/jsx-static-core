@@ -11,9 +11,9 @@ interface BuildConfig {
 }
 
 const defaultBuildConfig: BuildConfig = {
-  siteDir: "site",
-  componentDir: "components",
-  outputDir: "build",
+  siteDir: "/site",
+  componentDir: "/components",
+  outputDir: "/build",
 }
 
 function genWebpackConfig(buildConfig: BuildConfig, entry?: string|string[]): webpack.Configuration {

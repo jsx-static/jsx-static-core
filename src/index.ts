@@ -33,10 +33,9 @@ function build(config: BuildConfig) {
       packer.run((err, stats) => {
         for(let i = 0; i < files.length; i++) {
           if(stats.hasErrors()) return rej(error(stats.toJson().errors))
-          //@ts-ignore // outputFileSystem.data is not a thing
+          //@ts-ignore // outputFileSystem.data is not a thing except it is because mfs
           const compiled = eval(packer.outputFileSystem.data[`temp${i}`].toString())
           const outFile = path.basename(files[i]).replace(".jsx", ".html")
-          console.log(outFile)
           fs.writeFile(getPath(path.join(config.outputDir, outFile)), ReactDOMServer.renderToString(compiled.default()), (err) => {})
         }
       })
