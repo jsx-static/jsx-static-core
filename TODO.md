@@ -1,0 +1,4 @@
+- [ ] add data injection
+- [ ] make config files work
+- [ ] workspace validation
+- [ ] i should prob have tests too...
