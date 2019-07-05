@@ -1,9 +1,14 @@
 import ReactDOMServer from "react-dom/server"
 import { isClass } from "./util"
+import { ReactElement } from "react";
 
 interface Compiled {
   filename: string,
   html: string
+}
+
+function compile(data: ReactElement): string {
+  return "<!DOCTYPE html>" + ReactDOMServer.renderToStaticMarkup(data)
 }
 
 function genHTML(component: string, data: any, basename: string): Compiled[] {
@@ -16,18 +21,18 @@ function genHTML(component: string, data: any, basename: string): Compiled[] {
     if(iterator) {
       return iterator.map((instance: any) => ({
         filename: instance.filename,
-        html: ReactDOMServer.renderToString(template.render(instance.data))
+        html: compile(template.render(instance.data))
       }))
     } else {
       return [{
         filename: config && config.filename ? config.filename : basename,
-        html: ReactDOMServer.renderToString(template.render())
+        html: compile(template.render())
       }]
     }
   } else {
     return [{
       filename: basename,
-      html: ReactDOMServer.renderToString(page.default())
+      html: compile(page.default())
     }]
   }
 }
