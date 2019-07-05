@@ -15,14 +15,19 @@ const defaultBuildConfig: BuildConfig = {
   outputDir: "/build"
 }
 
-function genWebpackConfig(buildConfig: BuildConfig, entry: string): webpack.Configuration {
+function genWebpackConfig(buildConfig: BuildConfig, entry?: string|string[]): webpack.Configuration {
   return {
+    mode: "development",
     entry,
+    devtool: "eval",
     // output is in memory thus no actual file is written
     output: {
-      filename: "temp",
+      filename: "temp[name]",
       path: "/",
     },
+    optimization: {
+      minimize: false
+    },  
     // components included in order to allow for simple including of the components dir
     resolve: {
       modules: [ getPath(buildConfig.componentDir), "node_modules" ],
