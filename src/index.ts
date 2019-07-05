@@ -4,7 +4,7 @@ import * as path from "path"
 import recursive from "recursive-readdir"
 import webpack from "webpack"
 import MemFS from "memory-fs"
-
+import ReactDOMServer from "react-dom/server"
 import { error } from "./error"
 import { getPath } from "./util"
 
@@ -13,7 +13,7 @@ interface BuildConfig {
 }
 
 const defaultConfig: BuildConfig = {
-  siteDir: "./site"
+  siteDir: "/site"
 }
 
 function build(config: BuildConfig) {
@@ -27,8 +27,8 @@ function build(config: BuildConfig) {
         const packer = webpack({
           entry: files[i],
           output: {
-            filename: path.basename(files[i]),
-            path: "/out"
+            filename: "temp",
+            path: "/"
           },
           module: {
             rules: [
@@ -45,16 +45,23 @@ function build(config: BuildConfig) {
               }
             ]
           },
+          plugins: [
+            new webpack.ProvidePlugin({
+              'React': 'react'
+            })
+          ]
         })
         packer.outputFileSystem = mfs
 
-        console.log(files[i])
         packer.run((err, stats) => {
+          if(stats.hasErrors()) rej(error(stats.toJson().errors))
+          console.log(packer.outputFileSystem)
           //@ts-ignore
-          fs.writeFile(path.basename(files[i]), packer.outputFileSystem.data.out[path.basename(files[i])], (err) => {
+          const compiled = eval(packer.outputFileSystem.data["temp"].toString())
+          const outFile = files[i].split(config.siteDir.replace(/\/|\\/, ""))[1].replace(".jsx", ".html")
+          fs.writeFile(getPath(path.join("out/", outFile)), ReactDOMServer.renderToString(compiled.default()), (err) => {
             console.log("hi")
           })
-          if(stats.hasErrors()) rej(error(stats.toJson().errors))
         })
         }
     })
