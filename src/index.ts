@@ -30,6 +30,9 @@ function build(config: BuildConfig) {
             filename: "temp",
             path: "/"
           },
+          resolve: {
+            modules: [ getPath("components"), "node_modules" ],
+          },
           module: {
             rules: [
               {
