@@ -1,6 +1,6 @@
 {
   "name": "jsx-static",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
@@ -22,16 +22,16 @@
   },
   "homepage": "https://github.com/jsx-static/jsx-static-core#readme",
   "devDependencies": {
-    "typescript": "^3.5.2"
+    "typescript": "^3.5.2",
+    "@types/memory-fs": "^0.3.2",
+    "@types/react-dom": "^16.8.4",
+    "@types/recursive-readdir": "^2.2.0",
+    "@types/webpack": "^4.4.34"
   },
   "dependencies": {
     "@babel/core": "^7.5.0",
     "@babel/plugin-transform-react-jsx": "^7.3.0",
     "@babel/preset-env": "^7.5.0",
-    "@types/memory-fs": "^0.3.2",
-    "@types/react-dom": "^16.8.4",
-    "@types/recursive-readdir": "^2.2.0",
-    "@types/webpack": "^4.4.34",
     "babel-loader": "^8.0.6",
     "memory-fs": "^0.4.1",
     "react-dom": "^16.8.6",
