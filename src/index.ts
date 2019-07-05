@@ -10,6 +10,8 @@ import { error } from "./error"
 import { getPath } from "./util"
 import { BuildConfig, defaultBuildConfig, genWebpackConfig } from "./config"
 import { testWorkspace, prepareWorkspace } from "./workspace"
+import { genHTML } from "./compiler"
+
 
 function build(config: BuildConfig) {
   const mfs = new MemFS()
@@ -36,7 +38,10 @@ function build(config: BuildConfig) {
           //@ts-ignore // outputFileSystem.data is not a thing except it is because mfs
           const compiled = eval(packer.outputFileSystem.data[`temp${i}`].toString())
           const outFile = path.basename(files[i]).replace(".jsx", ".html")
-          fs.writeFile(getPath(path.join(config.outputDir, outFile)), ReactDOMServer.renderToString(compiled.default()), (err) => {})
+          const html = genHTML(compiled, {}, outFile)
+          for(let i = 0; i < html.length; i++) {
+            fs.writeFile(getPath(path.join(config.outputDir, html[i].filename)), html[i].html, (err) => {})
+          }
         }
       })
     })
