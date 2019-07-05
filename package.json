@@ -1,12 +1,13 @@
 {
   "name": "jsx-static",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "scripts": {
     "build": "tsc",
-    "dev": "tsc -w"
+    "dev": "tsc -w",
+    "install": "node install-msg.js"
   },
   "files": [
     "lib/**/*"
