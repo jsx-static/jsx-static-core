@@ -23,5 +23,9 @@
   "homepage": "https://github.com/jsx-static/jsx-static-core#readme",
   "devDependencies": {
     "typescript": "^3.5.2"
+  },
+  "dependencies": {
+    "@types/recursive-readdir": "^2.2.0",
+    "recursive-readdir": "^2.2.2"
   }
 }
