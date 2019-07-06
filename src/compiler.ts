@@ -13,7 +13,7 @@ function compile(data: ReactElement): string {
 
 function genHTML(component: string, data: any, basename: string): Compiled[] {
   const page = eval(component)
-  if(isClass(page)) {
+  if(isClass(page.default)) {
     const template = new page.default(data)
     const iterator = template.iterator && template.iterator()
     const config = template.config && template.config()
