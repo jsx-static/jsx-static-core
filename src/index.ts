@@ -1,7 +1,8 @@
-import * as fs from "fs"
+import * as nfs from "fs"
 import * as path from "path"
 
-import recursive from "recursive-readdir"
+//@ts-ignore // recursive-readdir-ext doesn't have a type declaration in @types
+import recursive from "recursive-readdir-ext"
 import webpack from "webpack"
 import MemFS from "memory-fs"
 import ReactDOMServer from "react-dom/server"
@@ -18,15 +19,15 @@ function build(config: BuildConfig) {
   const mfs = new MemFS()
   
   return new Promise((res, rej) => {
-    if(!config && !fs.existsSync(getPath("jsxs.config.json"))) config = defaultBuildConfig
+    if(!config && !nfs.existsSync(getPath("jsxs.config.json"))) config = defaultBuildConfig
     else {
-      config = JSON.parse(fs.readFileSync(getPath("jsxs.config.json"), "utf8"))
+      config = JSON.parse(nfs.readFileSync(getPath("jsxs.config.json"), "utf8"))
     }
 
     if(!testWorkspace(config)) return rej(error({ msg: "needed folders do not exist" }))
     prepareWorkspace(config)
 
-    recursive(getPath(config.siteDir), (err, files) => {
+    recursive(getPath(config.siteDir), { fs: config.fs }, (err, files) => {
       if(err) return rej(error(err))
       if(files.length === 0) return rej(error({ msg: "no files in site" }))
       
@@ -42,7 +43,7 @@ function build(config: BuildConfig) {
             const outFile = path.basename(files[i]).replace(".jsx", ".html")
             const compiledPages = genHTML(compiled, data, outFile)
             for(let i = 0; i < compiledPages.length; i++) {
-              fs.writeFile(getPath(path.join(config.outputDir, compiledPages[i].filename)), compiledPages[i].html, (err) => {})
+              nfs.writeFile(getPath(path.join(config.outputDir, compiledPages[i].filename)), compiledPages[i].html, (err) => {})
             }
           }
         })

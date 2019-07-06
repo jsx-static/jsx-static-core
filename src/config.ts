@@ -1,3 +1,5 @@
+import * as fs from "fs"
+
 import webpack from "webpack"
 
 import { getPath } from "./util"
@@ -9,6 +11,7 @@ interface BuildConfig {
   outputDir: string,
   dataDir: string,
   dataEntry: string,
+  fs: object,
   webpackConfig?: webpack.Configuration
 }
 
@@ -17,6 +20,7 @@ const defaultBuildConfig: BuildConfig = {
   componentDir: "/components",
   outputDir: "/build",
   dataDir: "/data",
+  fs,
   dataEntry: "index.js"
 }
 
