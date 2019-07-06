@@ -27,7 +27,7 @@ function build(config: BuildConfig) {
     if(!testWorkspace(config)) return rej(error({ msg: "needed folders do not exist" }))
     prepareWorkspace(config)
 
-    recursive(getPath(config.siteDir), { fs: config.fs }, (err, files) => {
+    recursive(getPath(config.siteDir), { fs: config.fs }, (err: any, files: string[]) => {
       if(err) return rej(error(err))
       if(files.length === 0) return rej(error({ msg: "no files in site" }))
       

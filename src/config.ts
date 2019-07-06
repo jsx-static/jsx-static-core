@@ -11,7 +11,7 @@ interface BuildConfig {
   outputDir: string,
   dataDir: string,
   dataEntry: string,
-  fs: object,
+  fs: any,
   webpackConfig?: webpack.Configuration
 }
 
