@@ -1,12 +1,10 @@
 import * as nfs from "fs"
 
 import { build } from "../src/index"
-import { getPath } from "../src/util/file"
 
 import { fs as mfs } from "memfs"
 //@ts-ignore // unionfs doesn't have type declaration
 import { ufs } from 'unionfs'
-
 
 mfs.mkdirSync("/build")
 
