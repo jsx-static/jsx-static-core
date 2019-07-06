@@ -5,8 +5,6 @@ import * as path from "path"
 import recursive from "recursive-readdir-ext"
 import webpack from "webpack"
 import MemFS from "memory-fs"
-//@ts-ignore // unionfs doesn't have type declaration
-import { ufs } from 'unionfs'
 
 import { error } from "./error"
 import { getPath, setRoot, setPostProcess, postProcess } from "./util/file"
@@ -41,7 +39,7 @@ function build(config: any, memfs?: boolean) {
 
       const packer = webpack(config.webpackConfig || genWebpackConfig(config, files.reduce((acc: any, cur, i) => { acc[i] = cur; return acc }, {})))
             
-      packer.inputFileSystem = ufs.use(config.fs).use(nfs)
+      packer.inputFileSystem = config.fs
       packer.outputFileSystem = mfs
 
       const data = genData(config)
