@@ -1,6 +1,8 @@
 import ReactDOMServer from "react-dom/server"
+import { ReactElement } from "react"
+
 import { isClass } from "./util"
-import { ReactElement } from "react";
+
 
 interface Compiled {
   filename: string,
