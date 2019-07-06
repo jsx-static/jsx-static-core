@@ -9,22 +9,19 @@ import { ufs } from 'unionfs'
 mfs.mkdirSync("/build")
 
 mfs.mkdirSync("/site")
-  mfs.writeFileSync("/site/index.jsx", "export default () => <h1>hi</h1>")
+  mfs.writeFileSync("/site/sf-nd.jsx", "export default () => <html>hi</html>")
+  mfs.writeFileSync("/site/sf-d.jsx", "export default () => <html>hi</html>")
 
 mfs.mkdirSync("/data")
-  mfs.writeFileSync("/data/index.js", "module.exports = {}")
+  mfs.writeFileSync("/data/index.js", `module.exports = {}`)
 
-
-it("compiles functional page without data", async () => {
-  
+it("compiles simple functional page without data", async () => {
   expect.assertions(1)
-
   jest.setTimeout(60000)
 
   await build({
     fs: ufs.use(mfs).use(nfs)
   }, true).then(v => {
-    expect(mfs.readFileSync("/build/index.html").toString()).toBe("<!DOCTYPE html><h1>hi</h1>")
+    expect(mfs.readFileSync("/build/sf-nd.html").toString()).toBe("<!DOCTYPE html><html>hi</html>")
   }).catch(console.error)
-
 })
