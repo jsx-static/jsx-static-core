@@ -11,6 +11,7 @@ import { getPath } from "./util"
 import { BuildConfig, defaultBuildConfig, genWebpackConfig } from "./config"
 import { testWorkspace, prepareWorkspace } from "./workspace"
 import { genHTML } from "./compiler"
+import { genData } from "./dataLoader"
 
 
 function build(config: BuildConfig) {
@@ -31,18 +32,20 @@ function build(config: BuildConfig) {
       
       const packer = webpack(config.webpackConfig || genWebpackConfig(config, files.reduce((acc: any, cur, i) => { acc[i] = cur; return acc }, {})))
       packer.outputFileSystem = mfs
-      
+      const data = genData(config)
       packer.run((err, stats) => {
-        for(let i = 0; i < files.length; i++) {
-          if(stats.hasErrors()) return rej(error(stats.toJson().errors))
-          //@ts-ignore // outputFileSystem.data is not a thing except it is because mfs
-          const compiled = eval(packer.outputFileSystem.data[`temp${i}`].toString())
-          const outFile = path.basename(files[i]).replace(".jsx", ".html")
-          const compiledPages = genHTML(compiled, {}, outFile)
-          for(let i = 0; i < compiledPages.length; i++) {
-            fs.writeFile(getPath(path.join(config.outputDir, compiledPages[i].filename)), compiledPages[i].html, (err) => {})
+        Promise.all([data]).then(([data]) => {
+          for(let i = 0; i < files.length; i++) {
+            if(stats.hasErrors()) return rej(error(stats.toJson().errors))
+            //@ts-ignore // outputFileSystem.data is not a thing except it is because mfs
+            const compiled = eval(packer.outputFileSystem.data[`temp${i}`].toString())
+            const outFile = path.basename(files[i]).replace(".jsx", ".html")
+            const compiledPages = genHTML(compiled, data, outFile)
+            for(let i = 0; i < compiledPages.length; i++) {
+              fs.writeFile(getPath(path.join(config.outputDir, compiledPages[i].filename)), compiledPages[i].html, (err) => {})
+            }
           }
-        }
+        })
       })
     })
   })

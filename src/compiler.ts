@@ -32,11 +32,12 @@ function genHTML(component: string, data: any, basename: string): Compiled[] {
   } else {
     return [{
       filename: basename,
-      html: compile(page.default())
+      html: compile(page.default(data))
     }]
   }
 }
 
 export {
-  genHTML
+  genHTML,
+  Compiled
 }

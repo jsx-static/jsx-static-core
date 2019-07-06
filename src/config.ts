@@ -8,6 +8,7 @@ interface BuildConfig {
   componentDir: string,
   outputDir: string,
   dataDir: string,
+  dataEntry: string,
   webpackConfig?: webpack.Configuration
 }
 
@@ -15,7 +16,8 @@ const defaultBuildConfig: BuildConfig = {
   siteDir: "/site",
   componentDir: "/components",
   outputDir: "/build",
-  dataDir: "/data"
+  dataDir: "/data",
+  dataEntry: "index.js"
 }
 
 function genWebpackConfig(buildConfig: BuildConfig, entry?: string|string[]): webpack.Configuration {
