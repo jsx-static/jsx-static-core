@@ -1,9 +1,9 @@
-import { getPath } from "./util"
+import { getPath } from "./util/file"
 import { BuildConfig } from "./config"
 
 function prepareWorkspace(config: BuildConfig) {
-  if(!config.fs.existsSync(getPath(config.siteDir))) config.fs.mkdirSync(getPath(config.siteDir))
-  if(!config.fs.existsSync(getPath(config.outputDir))) config.fs.mkdirSync(getPath(config.outputDir))
+  if(!config.fs.existsSync(getPath(config.siteDir)))      config.fs.mkdirSync(getPath(config.siteDir))
+  if(!config.fs.existsSync(getPath(config.outputDir)))    config.fs.mkdirSync(getPath(config.outputDir))
   if(!config.fs.existsSync(getPath(config.componentDir))) config.fs.mkdirSync(getPath(config.componentDir))
 }
 

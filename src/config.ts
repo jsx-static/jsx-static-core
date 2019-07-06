@@ -1,8 +1,9 @@
 import * as fs from "fs"
+import * as path from "path"
 
 import webpack from "webpack"
 
-import { getPath } from "./util"
+import { getPath } from "./util/file"
 
 
 interface BuildConfig {
@@ -39,7 +40,11 @@ function genWebpackConfig(buildConfig: BuildConfig, entry?: string|string[]): we
     },  
     // components included in order to allow for simple including of the components dir
     resolve: {
-      modules: [ getPath(buildConfig.componentDir), "node_modules" ],
+      modules: [ 
+        "node_modules", 
+        getPath(buildConfig.componentDir), 
+        path.join(path.resolve("."), "node_modules") 
+      ],
     },
     performance: {
       hints: "warning"
@@ -60,7 +65,7 @@ function genWebpackConfig(buildConfig: BuildConfig, entry?: string|string[]): we
         }
       ]
     },
-    // lets the user not have to import react every file
+    // lets the user not have to include react every file
     plugins: [
       new webpack.ProvidePlugin({
         'React': 'react'

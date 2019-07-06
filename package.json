@@ -7,6 +7,7 @@
   "scripts": {
     "build": "tsc",
     "dev": "tsc -w",
+    "test": "jest",
     "install": "node scripts/install.js"
   },
   "files": [
@@ -23,20 +24,26 @@
   },
   "homepage": "https://github.com/jsx-static/jsx-static-core#readme",
   "devDependencies": {
+    "@babel/core": "^7.5.0",
+    "@babel/plugin-transform-react-jsx": "^7.3.0",
+    "@babel/preset-env": "^7.5.0",
+    "@types/jest": "^24.0.15",
     "@types/memory-fs": "^0.3.2",
     "@types/react-dom": "^16.8.4",
     "@types/recursive-readdir": "^2.2.0",
     "@types/webpack": "^4.4.34",
-    "typescript": "^3.5.2"
+    "babel-loader": "^8.0.6",
+    "jest": "^24.8.0",
+    "react": "^16.8.6",
+    "ts-jest": "^24.0.2",
+    "typescript": "^3.5.2",
+    "unionfs": "^4.2.0"
   },
   "dependencies": {
-    "@babel/core": "^7.5.0",
-    "@babel/plugin-transform-react-jsx": "^7.3.0",
-    "@babel/preset-env": "^7.5.0",
-    "babel-loader": "^8.0.6",
+    "memfs": "^2.15.4",
     "memory-fs": "^0.4.1",
-    "react": "^16.8.6",
     "react-dom": "^16.8.6",
+    "recursive-readdir": "^2.2.2",
     "recursive-readdir-ext": "^2.3.0",
     "webpack": "^4.35.2"
   },

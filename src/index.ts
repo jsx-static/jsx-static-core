@@ -5,34 +5,45 @@ import * as path from "path"
 import recursive from "recursive-readdir-ext"
 import webpack from "webpack"
 import MemFS from "memory-fs"
-import ReactDOMServer from "react-dom/server"
+//@ts-ignore // unionfs doesn't have type declaration
+import { ufs } from 'unionfs'
 
 import { error } from "./error"
-import { getPath } from "./util"
-import { BuildConfig, defaultBuildConfig, genWebpackConfig } from "./config"
+import { getPath, setRoot, setPostProcess, postProcess } from "./util/file"
+import { defaultBuildConfig, genWebpackConfig } from "./config"
 import { testWorkspace, prepareWorkspace } from "./workspace"
 import { genHTML } from "./compiler"
 import { genData } from "./dataLoader"
 
 
-function build(config: BuildConfig) {
+function build(config: any, memfs?: boolean) {
+  if(memfs) {
+    setRoot("")
+    setPostProcess((str: any) => str.replace(/\\/g, "/"))
+  } else setRoot(path.resolve("."))
+
   const mfs = new MemFS()
   
   return new Promise((res, rej) => {
-    if(!config && !nfs.existsSync(getPath("jsxs.config.json"))) config = defaultBuildConfig
-    else {
-      config = JSON.parse(nfs.readFileSync(getPath("jsxs.config.json"), "utf8"))
-    }
+    if(config) config = { ...defaultBuildConfig, ...config }
+    else if (!nfs.existsSync(getPath("jsxs.config.json"))) config = defaultBuildConfig
+    else config = JSON.parse(nfs.readFileSync(getPath("jsxs.config.json"), "utf8"))
 
     if(!testWorkspace(config)) return rej(error({ msg: "needed folders do not exist" }))
     prepareWorkspace(config)
-
-    recursive(getPath(config.siteDir), { fs: config.fs }, (err: any, files: string[]) => {
+    recursive(getPath(config.siteDir), {
+      fs: config.fs
+    }, (err: any, files: string[]) => {
       if(err) return rej(error(err))
       if(files.length === 0) return rej(error({ msg: "no files in site" }))
       
+      files = files.map(f => postProcess(f))
+
       const packer = webpack(config.webpackConfig || genWebpackConfig(config, files.reduce((acc: any, cur, i) => { acc[i] = cur; return acc }, {})))
+            
+      packer.inputFileSystem = ufs.use(config.fs).use(nfs)
       packer.outputFileSystem = mfs
+
       const data = genData(config)
       packer.run((err, stats) => {
         Promise.all([data]).then(([data]) => {
@@ -43,9 +54,11 @@ function build(config: BuildConfig) {
             const outFile = path.basename(files[i]).replace(".jsx", ".html")
             const compiledPages = genHTML(compiled, data, outFile)
             for(let i = 0; i < compiledPages.length; i++) {
-              nfs.writeFile(getPath(path.join(config.outputDir, compiledPages[i].filename)), compiledPages[i].html, (err) => {})
+              console.log(getPath(path.join(config.outputDir, compiledPages[i].filename)))
+              config.fs.writeFileSync(getPath(path.join(config.outputDir, compiledPages[i].filename)), compiledPages[i].html)
             }
           }
+          res()
         })
       })
     })
