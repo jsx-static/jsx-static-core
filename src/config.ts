@@ -6,7 +6,8 @@ import { getPath } from "./util"
 interface BuildConfig {
   siteDir: string,
   componentDir: string,
-  outputDir: string
+  outputDir: string,
+  dataDir: string,
   webpackConfig?: webpack.Configuration
 }
 
@@ -14,6 +15,7 @@ const defaultBuildConfig: BuildConfig = {
   siteDir: "/site",
   componentDir: "/components",
   outputDir: "/build",
+  dataDir: "/data"
 }
 
 function genWebpackConfig(buildConfig: BuildConfig, entry?: string|string[]): webpack.Configuration {

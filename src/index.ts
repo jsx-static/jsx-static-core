@@ -38,9 +38,9 @@ function build(config: BuildConfig) {
           //@ts-ignore // outputFileSystem.data is not a thing except it is because mfs
           const compiled = eval(packer.outputFileSystem.data[`temp${i}`].toString())
           const outFile = path.basename(files[i]).replace(".jsx", ".html")
-          const html = genHTML(compiled, {}, outFile)
-          for(let i = 0; i < html.length; i++) {
-            fs.writeFile(getPath(path.join(config.outputDir, html[i].filename)), html[i].html, (err) => {})
+          const compiledPages = genHTML(compiled, {}, outFile)
+          for(let i = 0; i < compiledPages.length; i++) {
+            fs.writeFile(getPath(path.join(config.outputDir, compiledPages[i].filename)), compiledPages[i].html, (err) => {})
           }
         }
       })
