@@ -18,7 +18,7 @@ expect(1).toBe(1)
 // test general compiler
 Object.entries(files).filter(f => f[0].indexOf("/site/") !== -1).forEach(f => {
   it(path.basename(f[0]).replace(".jsx", ""), async () => {
-    jest.setTimeout(60000) // the processing time for the build function is pretty long
+    jest.setTimeout(60000) // the processing time for the build function from scratch is pretty long
   
     await build({
       fs: ufs.use(mfs).use(nfs) // use pages stored in memory with files stored in node_modules
