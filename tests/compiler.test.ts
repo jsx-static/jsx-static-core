@@ -1,27 +1,28 @@
 import * as nfs from "fs"
+import * as path from "path"
 
 import { build } from "../src/index"
 
-import { fs as mfs } from "memfs"
+import { fs as mfs, vol } from "memfs"
+
 //@ts-ignore // unionfs doesn't have type declaration
 import { ufs } from 'unionfs'
 
-mfs.mkdirSync("/build")
+// create virtual file system
+import files, { output } from "./samples/files"
 
-mfs.mkdirSync("/site")
-  mfs.writeFileSync("/site/sf-nd.jsx", "export default () => <html>hi</html>")
-  mfs.writeFileSync("/site/sf-d.jsx", "export default () => <html>hi</html>")
+vol.fromJSON(files)
 
-mfs.mkdirSync("/data")
-  mfs.writeFileSync("/data/index.js", `module.exports = {}`)
-
-it("compiles simple functional page without data", async () => {
-  expect.assertions(1)
-  jest.setTimeout(60000)
-
-  await build({
-    fs: ufs.use(mfs).use(nfs)
-  }, true).then(v => {
-    expect(mfs.readFileSync("/build/sf-nd.html").toString()).toBe("<!DOCTYPE html><html>hi</html>")
-  }).catch(console.error)
+// test general compiler
+Object.entries(files).filter(f => f[0].indexOf("/site/") !== -1).forEach(f => {
+  it(path.basename(f[0]).replace(".jsx", ""), async () => {
+    expect.assertions(1)
+    jest.setTimeout(60000) // the processing time for the build function is pretty large
+  
+    await build({
+      fs: ufs.use(mfs).use(nfs) // use pages stored in memory with files stored in node_modules
+    }, true).then(v => {
+      expect(mfs.readFileSync(f[0].replace(".jsx", ".html").replace("/site/", "/build/")).toString()).toBe(output)
+    }).catch(console.error)
+  })
 })

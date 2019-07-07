@@ -52,7 +52,6 @@ function build(config: any, memfs?: boolean) {
             const outFile = path.basename(files[i]).replace(".jsx", ".html")
             const compiledPages = genHTML(compiled, data, outFile)
             for(let i = 0; i < compiledPages.length; i++) {
-              console.log(getPath(path.join(config.outputDir, compiledPages[i].filename)))
               config.fs.writeFileSync(getPath(path.join(config.outputDir, compiledPages[i].filename)), compiledPages[i].html)
             }
           }
