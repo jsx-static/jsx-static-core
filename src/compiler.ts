@@ -32,7 +32,7 @@ function genHTML(component: string, data: any, basename: string): Compiled[] {
         }))
       } else {
         return [{
-          filename: config && config.filename ? config.filename : basename,
+          filename: (config && config.filename) ? config.filename : basename,
           html: compile(template.render())
         }]
       }

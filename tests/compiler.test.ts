@@ -13,16 +13,17 @@ import files, { output } from "./samples/files"
 
 vol.fromJSON(files)
 
+expect(1).toBe(1)
+
 // test general compiler
 Object.entries(files).filter(f => f[0].indexOf("/site/") !== -1).forEach(f => {
   it(path.basename(f[0]).replace(".jsx", ""), async () => {
-    expect.assertions(1)
-    jest.setTimeout(60000) // the processing time for the build function is pretty large
+    jest.setTimeout(60000) // the processing time for the build function is pretty long
   
     await build({
       fs: ufs.use(mfs).use(nfs) // use pages stored in memory with files stored in node_modules
     }, true).then(v => {
-      expect(mfs.readFileSync(f[0].replace(".jsx", ".html").replace("/site/", "/build/")).toString()).toBe(output)
+      expect(mfs.readFileSync(f[0].replace(".jsx", ".html").replace("/site/", "/build/"), "utf8")).toBe(output)
     }).catch(console.error)
   })
 })

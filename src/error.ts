@@ -1,5 +1,5 @@
 function error(errObj: any): any {
-  console.error(errObj)
+  console.warn(errObj)
   return errObj
 }
 

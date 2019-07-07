@@ -13,8 +13,8 @@ export default {
       testStr: "hi"
     }
   `,
-  "/site/Simple Functional Page.jsx": "export default () => <html>hi</html>", // simple functional page no data
-  "/site/Simple Functional Page with Data.jsx": "export default data => <html>{ data.testStr }</html>", // simple fimctional page with data,
+  "/site/Simple Functional Page.jsx": "export default () => <html>hi</html>",
+  "/site/Simple Functional Page with Data.jsx": "export default data => <html>{ data.testStr }</html>",
   "/site/Simple Class Page.jsx": `
     export default class extends React.Component {
       render() {
