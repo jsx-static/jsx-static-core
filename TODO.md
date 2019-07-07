@@ -1,4 +1,9 @@
-- [ ] add data injection
+- [x] add data injection
 - [ ] make config files work
-- [ ] workspace validation
-- [ ] i should prob have tests too...
+- [x] workspace validation
+- [x] i should prob have tests too...
+- [ ] assets
+  - [ ] scss, sass, less, stulus
+  - [ ] coffee script, babel
+- [ ] watching
+- [ ] speed up compiler
