@@ -8,19 +8,38 @@ import MemFS from "memory-fs"
 
 import { error } from "./error"
 import { getPath, setRoot, setPostProcess, postProcess } from "./util/file"
-import { defaultBuildConfig, genWebpackConfig, getConfig } from "./config"
+import { defaultBuildConfig, genWebpackConfig, getConfig, BuildConfig } from "./config"
 import { testWorkspace, prepareWorkspace } from "./workspace"
 import { genHTML } from "./compiler"
 import { genData } from "./dataLoader"
 
 import chokidar from "chokidar"
 
-function build(params: any, memfs?: boolean) {
-  if(memfs) {
+function configRoot(mfs: boolean) {
+  if(mfs) {
     setRoot("")
     setPostProcess((str: any) => str.replace(/\\/g, "/"))
   } else setRoot(path.resolve("."))
+}
 
+interface FileOutput {
+  source: string,
+  name: string
+}
+
+function writeFiles(files: FileOutput[], config: BuildConfig, data: any) {
+  for(let i = 0; i < files.length; i++) {
+    const compiled = eval(files[i].source)
+    const outFile = path.basename(files[i].name).replace(".jsx", ".html")
+    const compiledPages = genHTML(compiled, data, outFile)
+    for(let i = 0; i < compiledPages.length; i++) {
+      config.fs.writeFileSync(getPath(path.join(config.outputDir, compiledPages[i].filename)), compiledPages[i].html)
+    }
+  }
+}
+
+function build(params: any, memfs?: boolean) {
+  configRoot(!!memfs)
   const mfs = new MemFS()
   
   return new Promise((res, rej) => {
@@ -44,16 +63,14 @@ function build(params: any, memfs?: boolean) {
       const data = genData(config)
       packer.run((err, stats) => {
         Promise.all([data]).then(([data]) => {
-          for(let i = 0; i < files.length; i++) {
-            if(stats.hasErrors()) return rej(error(stats.toJson().errors))
+          if(stats.hasErrors()) return rej(error(stats.toJson().errors))
+          const output: FileOutput[] = files.map((f, i) => ({
             //@ts-ignore // outputFileSystem.data is not a thing except it is because mfs
-            const compiled = eval(packer.outputFileSystem.data[`temp${i}`].toString())
-            const outFile = path.basename(files[i]).replace(".jsx", ".html")
-            const compiledPages = genHTML(compiled, data, outFile)
-            for(let i = 0; i < compiledPages.length; i++) {
-              config.fs.writeFileSync(getPath(path.join(config.outputDir, compiledPages[i].filename)), compiledPages[i].html)
-            }
-          }
+            source: packer.outputFileSystem.data[`temp${i}`].toString(),
+            name: path.basename(f).replace(".jsx", ".html")
+          }))
+          
+          writeFiles(output, config, data)
           res()
         })
       })
@@ -62,10 +79,7 @@ function build(params: any, memfs?: boolean) {
 }
 
 function watch(params: any, memfs?: boolean) {
-  if(memfs) {
-    setRoot("")
-    setPostProcess((str: any) => str.replace(/\\/g, "/"))
-  } else setRoot(path.resolve("."))
+  configRoot(!!memfs)
 
   const mfs = new MemFS()
   
@@ -82,7 +96,6 @@ function watch(params: any, memfs?: boolean) {
       files = files.map(f => postProcess(f))
 
       const packer = webpack(config.webpackConfig || genWebpackConfig(config, files.reduce((acc: any, cur, i) => { acc[i] = cur; return acc }, {})))
-
       
       packer.inputFileSystem = config.fs
       packer.outputFileSystem = mfs
@@ -90,16 +103,14 @@ function watch(params: any, memfs?: boolean) {
       const data = genData(config)
       packer.watch({}, (err, stats) => {
         Promise.all([data]).then(([data]) => {
-          for(let i = 0; i < files.length; i++) {
-            if(stats.hasErrors()) return rej(error(stats.toJson().errors))
+          if(stats.hasErrors()) return rej(error(stats.toJson().errors))
+          const output: FileOutput[] = files.map((f, i) => ({
             //@ts-ignore // outputFileSystem.data is not a thing except it is because mfs
-            const compiled = eval(packer.outputFileSystem.data[`temp${i}`].toString())
-            const outFile = path.basename(files[i]).replace(".jsx", ".html")
-            const compiledPages = genHTML(compiled, data, outFile)
-            for(let i = 0; i < compiledPages.length; i++) {
-              config.fs.writeFileSync(getPath(path.join(config.outputDir, compiledPages[i].filename)), compiledPages[i].html)
-            }
-          }
+            source: packer.outputFileSystem.data[`temp${i}`].toString(),
+            name: path.basename(f).replace(".jsx", ".html")
+          }))
+          
+          writeFiles(output, config, data)
           res()
         })
       })
