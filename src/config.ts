@@ -74,8 +74,15 @@ function genWebpackConfig(buildConfig: BuildConfig, entry?: string|string[]): we
   }
 }
 
+function getConfig(pConfig: any): BuildConfig {
+  if(pConfig) return { ...defaultBuildConfig, ...pConfig }
+  else if (!fs.existsSync(getPath("jsxs.config.json"))) return defaultBuildConfig
+  else return JSON.parse(fs.readFileSync(getPath("jsxs.config.json"), "utf8"))
+}
+
 export {
   BuildConfig,
   defaultBuildConfig,
-  genWebpackConfig
+  genWebpackConfig,
+  getConfig,
 }

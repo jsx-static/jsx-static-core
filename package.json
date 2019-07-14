@@ -11,7 +11,8 @@
     "install": "node scripts/install.js"
   },
   "files": [
-    "lib/src/**/*", "scripts/**/*"
+    "lib/src/**/*",
+    "scripts/**/*"
   ],
   "repository": {
     "type": "git",
@@ -40,6 +41,7 @@
     "unionfs": "^4.2.0"
   },
   "dependencies": {
+    "chokidar": "^3.0.2",
     "memfs": "^2.15.4",
     "memory-fs": "^0.4.1",
     "react-dom": "^16.8.6",
