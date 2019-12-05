@@ -8,6 +8,10 @@ function getPath(p: string): string {
   return postProcess(path.join(__root, p))
 }
 
+function getRoot(): string {
+  return __root
+}
+
 function setRoot(root: string) {
   __root = root
 }
@@ -19,6 +23,7 @@ function setPostProcess(fn: any) {
 export {
   getPath,
   setRoot,
+  getRoot,
   setPostProcess,
   postProcess
 }

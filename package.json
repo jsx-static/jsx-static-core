@@ -47,6 +47,7 @@
     "react-dom": "^16.8.6",
     "recursive-readdir": "^2.2.2",
     "recursive-readdir-ext": "^2.3.0",
+    "react": "^16.8.6",
     "webpack": "^4.35.2"
   },
   "peerDependencies": {

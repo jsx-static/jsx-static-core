@@ -3,7 +3,7 @@ import * as path from "path"
 
 import webpack from "webpack"
 
-import { getPath } from "./util/file"
+import { getRoot, getPath } from "./util/file"
 
 //@ts-ignore // recursive-readdir-ext doesn't have a type declaration in @types
 import recursive from "recursive-readdir-ext"
@@ -32,7 +32,7 @@ function genWebpackConfig(buildConfig: BuildConfig): webpack.Configuration {
     mode: "development",
     entry: () =>
       new Promise((res, rej) => {
-        recursive(path.join(path.resolve("."), buildConfig.siteDir), (err, files) => {
+        recursive(path.join(getRoot(), buildConfig.siteDir), { fs: buildConfig.fs }, (err, files) => {
           if (err) rej(err)
           else res(files.reduce((a, c) => { a[path.basename(c).replace(".jsx", ".html")] = c; return a }, {}))
         })
@@ -43,9 +43,9 @@ function genWebpackConfig(buildConfig: BuildConfig): webpack.Configuration {
     },
     resolve: {
       modules: [
-        "node_modules",
-        path.join(path.resolve("."), buildConfig.componentDir),
-        path.join(path.resolve("."), "node_modules")
+        path.join(path.resolve("."), "node_modules"),
+        path.join(getRoot(), buildConfig.componentDir),
+        path.join(getRoot(), "node_modules")
       ],
     },
     module: {
@@ -82,7 +82,7 @@ function genWebpackConfig(buildConfig: BuildConfig): webpack.Configuration {
     mode: "development",
     entry: () =>
       new Promise((res, rej) => {
-        recursive(path.join(path.resolve("."), buildConfig.siteDir), {
+        recursive(path.join(getRoot(), buildConfig.siteDir), {
           fs: buildConfig.fs
         }, (err, files) => {
           if (err) rej(err)
@@ -99,8 +99,8 @@ function genWebpackConfig(buildConfig: BuildConfig): webpack.Configuration {
     resolve: {
       modules: [
         "node_modules",
-        getPath(path.join(path.resolve("."), buildConfig.siteDir)),
-        path.join(path.resolve("."), "node_modules")
+        getPath(path.join(getRoot(), buildConfig.siteDir)),
+        path.join(getRoot(), "node_modules")
       ],
     },
     performance: {
