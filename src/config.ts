@@ -13,6 +13,8 @@ interface BuildConfig {
   componentDir: string,
   outputDir: string,
   dataDir: string,
+  styleDir: string,
+  assetsDir: string,
   dataEntry: string,
   fs: any,
   webpackConfig?: webpack.Configuration
@@ -23,6 +25,8 @@ const defaultBuildConfig: BuildConfig = {
   componentDir: "/components",
   outputDir: "/build",
   dataDir: "/data",
+  styleDir: "/style",
+  assetsDir: "/assets",
   fs,
   dataEntry: "index.js"
 }
