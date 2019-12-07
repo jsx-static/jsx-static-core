@@ -11,22 +11,25 @@ import { genHTML } from "./compiler"
 import { genData } from "./dataLoader"
 import { watchSass, buildSass } from "./sass"
 
+import handler from "serve-handler"
+import http from "http"
+
 
 function build(params: any, memfs?: boolean) {
-  if(memfs) {
+  if (memfs) {
     setRoot("")
     setPostProcess((str: any) => str.replace(/\\/g, "/"))
   } else setRoot(path.resolve("."))
 
   const mfs = new MemFS()
-  
+
   const config = getConfig(params)
   const packer = webpack(genWebpackConfig(config))
-    
+
   packer.inputFileSystem = config.fs
   packer.outputFileSystem = mfs
 
-  if(!testWorkspace(config)) {
+  if (!testWorkspace(config)) {
     console.error("needed folders do not exist, making them")
     prepareWorkspace(config)
   }
@@ -36,17 +39,17 @@ function build(params: any, memfs?: boolean) {
   const data = genData(config)
   return new Promise((res, rej) => {
     packer.run((err, stats) => {
-      if(err) rej(err)
-      if(stats.hasErrors()) rej(stats.compilation.errors)
+      if (err) rej(err)
+      if (stats.hasErrors()) rej(stats.compilation.errors)
       Promise.all([data]).then(([data]) => {
         //@ts-ignore // outputFileSystem.data is not a thing except it is because mfs
         for (let name in packer.outputFileSystem.data) {
-          if(stats.hasErrors()) console.error(stats.compilation.errors)
+          if (stats.hasErrors()) console.error(stats.compilation.errors)
           // @ts-ignore // outputFileSystem.data is not a thing except it is because mfs
           const compiled = eval(packer.outputFileSystem.data[name].toString())
           const outFile = path.basename(name).replace(".jsx", ".html")
           const compiledPages = genHTML(compiled, data, outFile)
-          for(let i = 0; i < compiledPages.length; i++) {
+          for (let i = 0; i < compiledPages.length; i++) {
             config.fs.writeFileSync(path.join(getRoot(), config.outputDir, compiledPages[i].filename), compiledPages[i].html)
           }
         }
@@ -57,38 +60,48 @@ function build(params: any, memfs?: boolean) {
 }
 
 function watch(params: any, memfs?: boolean) {
-  if(memfs) {
+  if (memfs) {
     setRoot("")
     setPostProcess((str: any) => str.replace(/\\/g, "/"))
   } else setRoot(path.resolve("."))
 
   const mfs = new MemFS()
-  
+
   const config = getConfig(params)
   const packer = webpack(genWebpackConfig(config))
-    
+
   packer.inputFileSystem = config.fs
   packer.outputFileSystem = mfs
 
-  if(!testWorkspace(config)) {
+  if (!testWorkspace(config)) {
     console.error("needed folders do not exist, making them")
     prepareWorkspace(config)
   }
 
   watchSass(config)
 
+  const server = http.createServer((request, response) => {
+    return handler(request, response, {
+      public: path.join(getRoot(), config.outputDir)
+    })
+  })
+
+  server.listen(8000, () => {
+    console.log('Running at http://localhost:8000')
+  })
+
   const data = genData(config)
   return packer.watch({}, (err, stats) => {
     Promise.all([data]).then(([data]) => {
       console.log("compiled")
-      //@ts-ignore // outputFileSystem.data is not a thing except it is because mfs
+      // @ts-ignore // outputFileSystem.data is not a thing except it is because mfs
       for (let name in packer.outputFileSystem.data) {
-        if(stats.hasErrors()) console.error(stats.compilation.errors)
+        if (stats.hasErrors()) console.error(stats.compilation.errors)
         // @ts-ignore // outputFileSystem.data is not a thing except it is because mf
         const compiled = eval(packer.outputFileSystem.data[name].toString())
         const outFile = path.basename(name).replace(".jsx", ".html")
         const compiledPages = genHTML(compiled, data, outFile)
-        for(let i = 0; i < compiledPages.length; i++) {
+        for (let i = 0; i < compiledPages.length; i++) {
           config.fs.writeFileSync(path.join(getRoot(), config.outputDir, compiledPages[i].filename), compiledPages[i].html)
         }
       }

@@ -10,18 +10,18 @@ function compileSass(files: string[], config: BuildConfig) {
   files.forEach(f => {
     sass.render({
       file: f,
-      outFile: path.join(getRoot(), "assets/style/", path.relative(path.join(getRoot(), config.styleDir), f))
+      outFile: path.join(getRoot(), "build/assets/style/", path.relative(path.join(getRoot(), config.styleDir), f))
     }, (err, res) => {
       if (!err) {
-        fs.mkdirSync("./assets/style", { recursive: true })
-        fs.writeFile("./assets/style/style.css", res.css, () => { })
+        fs.mkdirSync("./build/assets/style", { recursive: true })
+        fs.writeFile("./build/assets/style/style.css", res.css, () => { })
       } else console.error(err)
     })
   })
 }
 
 function watchSass(config: BuildConfig) {
-  const watcher = chokidar.watch(path.join(getRoot(), config.styleDir), { ignored: /^[^_].*(\.sass|\.scss)/ })
+  const watcher = chokidar.watch(path.join(getRoot(), config.styleDir), { ignored: /^[_].*[^(\.sass|\.scss)]/ })
   watcher.on("all", path => {
     console.log("oof")
     compileSass([path], config)

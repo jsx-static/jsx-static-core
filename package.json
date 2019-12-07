@@ -1,6 +1,6 @@
 {
   "name": "jsx-static",
-  "version": "0.0.10",
+  "version": "0.1.1",
   "description": "",
   "main": "lib/src/index.js",
   "types": "lib/src/index.d.ts",
@@ -50,6 +50,7 @@
     "react-dom": "^16.8.6",
     "recursive-readdir": "^2.2.2",
     "recursive-readdir-ext": "^2.3.0",
+    "serve-handler": "^6.1.2",
     "webpack": "^4.35.2"
   },
   "peerDependencies": {
