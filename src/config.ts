@@ -1,11 +1,11 @@
 import * as fs from "fs"
 import * as path from "path"
 
-import webpack from "webpack"
+import webpack, { HotModuleReplacementPlugin } from "webpack"
+import webpackDevServer from "webpack-dev-server"
 
 import { getPath } from "./util/file"
-
-
+webpackDevServer.addDevServerEntrypoints
 interface BuildConfig {
   siteDir: string,
   componentDir: string,
@@ -25,19 +25,19 @@ const defaultBuildConfig: BuildConfig = {
   dataEntry: "index.js"
 }
 
-function genWebpackConfig(buildConfig: BuildConfig, entry?: string|string[]): webpack.Configuration {
+function genWebpackConfig(buildConfig: BuildConfig, entry: string[]): webpack.Configuration {
   return {
     mode: "development",
-    entry,
+    entry: entry,
     devtool: "eval",
     // output is in memory thus no actual file is written
     output: {
-      filename: "temp[name]",
+      filename: "temp[id]",
       path: "/",
     },
     optimization: {
       minimize: false
-    },  
+    },
     // components included in order to allow for simple including of the components dir
     resolve: {
       modules: [ 
@@ -55,13 +55,21 @@ function genWebpackConfig(buildConfig: BuildConfig, entry?: string|string[]): we
         {
           test: /\.jsx$/,
           exclude: /(node_modules)/,
-          use: {
-            loader: 'babel-loader',
-            options: {
-              presets: ['@babel/preset-env'],
-              plugins: ["@babel/plugin-transform-react-jsx"]
-            }
-          }
+          use: [
+            {
+              loader: path.join(path.dirname(__filename), "./loader/index.js"),
+              options: {
+                buildConfig
+              }
+            },
+            {
+              loader: 'babel-loader',
+              options: {
+                presets: ['@babel/preset-env'],
+                plugins: ["@babel/plugin-transform-react-jsx", "@babel/plugin-transform-modules-commonjs"]
+              }
+            },
+          ]
         }
       ]
     },
@@ -69,7 +77,8 @@ function genWebpackConfig(buildConfig: BuildConfig, entry?: string|string[]): we
     plugins: [
       new webpack.ProvidePlugin({
         'React': 'react'
-      })
+      }),
+      new HotModuleReplacementPlugin({})
     ]
   }
 }

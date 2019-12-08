@@ -1,7 +1,7 @@
 {
   "name": "jsx-static",
-  "version": "0.0.10",
-  "description": "",
+  "version": "0.0.11",
+  "description": "A Static site generator made with jsx.",
   "main": "lib/src/index.js",
   "types": "lib/src/index.d.ts",
   "scripts": {
@@ -41,13 +41,18 @@
     "unionfs": "^4.2.0"
   },
   "dependencies": {
+    "@babel/plugin-transform-modules-commonjs": "^7.7.0",
+    "@types/webpack-dev-server": "^3.4.0",
+    "babel-plugin-add-module-exports": "^1.0.2",
     "chokidar": "^3.0.2",
+    "loader-utils": "^1.2.3",
     "memfs": "^2.15.4",
     "memory-fs": "^0.4.1",
     "react-dom": "^16.8.6",
     "recursive-readdir": "^2.2.2",
     "recursive-readdir-ext": "^2.3.0",
-    "webpack": "^4.35.2"
+    "webpack": "^4.35.2",
+    "webpack-dev-server": "^3.9.0"
   },
   "peerDependencies": {
     "@babel/core": "^7.5.0",

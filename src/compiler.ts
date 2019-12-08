@@ -1,13 +1,20 @@
 import React from "react"
 import ReactDOMServer from "react-dom/server"
 import { ReactElement } from "react"
+import path from "path"
 
 import { isClass } from "./util"
-
+import { getPath, setRoot, setPostProcess, postProcess } from "./util/file"
+import { defaultBuildConfig, genWebpackConfig, getConfig, BuildConfig } from "./config"
 
 interface Compiled {
   filename: string,
   html: string
+}
+
+interface FileOutput {
+  source: string,
+  name: string
 }
 
 function compile(data: ReactElement): string {
@@ -16,11 +23,14 @@ function compile(data: ReactElement): string {
 
 function genHTML(component: string, data: any, basename: string): Compiled[] {
   const page = eval(component)
-    const template = new page.default(data)
+  console.log(page)
+  if (isClass(page)) {
+    console.log("is class")
+    const template = new page(data)
     if(React.isValidElement(template)) {
       return [{
         filename: basename,
-        html: compile(page.default(data))
+        html: compile(page(data))
       }]
     } else {
       const iterator = template.iterator && template.iterator()
@@ -37,9 +47,30 @@ function genHTML(component: string, data: any, basename: string): Compiled[] {
         }]
       }
     }
+  } else {
+    return [{
+      filename: basename,
+      html: compile(page(data))
+    }]
+  }
+}
+
+function writeFiles(files: FileOutput[], config: BuildConfig, data: any) {
+  for (let i = 0; i < files.length; i++) {
+    const compiled = eval(files[i].source)
+    const outFile = path.basename(files[i].name).replace(".jsx", ".html")
+    console.log(outFile)
+    const compiledPages = genHTML(compiled, data, outFile)
+    for (let i = 0; i < compiledPages.length; i++) {
+      console.log(compiledPages[i])
+      config.fs.writeFileSync(getPath(path.join(config.outputDir, compiledPages[i].filename)), compiledPages[i].html)
+    }
+  }
 }
 
 export {
   genHTML,
-  Compiled
+  Compiled,
+  writeFiles,
+  FileOutput
 }
