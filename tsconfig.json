@@ -4,7 +4,7 @@
     "module": "commonjs",
     "outDir": "./lib",
     "declaration": true,
-    "strict": true,
+    "strict": false,
     "esModuleInterop": true
   },
   "include": [ "src", "tests" ],

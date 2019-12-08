@@ -8,6 +8,7 @@ export {
 
 export default {
   "/build/.keep": "keep",
+  "/components/.keep": "keep",
   "/data/index.js": `
     module.exports = {
       testStr: "hi"
