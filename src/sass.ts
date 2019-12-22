@@ -21,10 +21,9 @@ function compileSass(files: string[], config: BuildConfig) {
 }
 
 function watchSass(config: BuildConfig) {
-  const watcher = chokidar.watch(path.join(getRoot(), config.styleDir), { ignored: /^[_].*[^(\.sass|\.scss)]/ })
-  watcher.on("all", path => {
-    console.log("oof")
-    compileSass([path], config)
+  const watcher = chokidar.watch(path.join(getRoot(), config.styleDir))
+  watcher.on("all", (_, p) => {
+    compileSass([path.join(getRoot(), "style/style.sass")], config)
   })
 }
 

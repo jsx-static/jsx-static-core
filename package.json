@@ -1,7 +1,7 @@
 {
   "name": "jsx-static",
-  "version": "0.1.1",
-  "description": "",
+  "version": "0.1.2",
+  "description": "dab",
   "main": "lib/src/index.js",
   "types": "lib/src/index.d.ts",
   "scripts": {
@@ -43,6 +43,7 @@
   "dependencies": {
     "@types/node-sass": "^4.11.0",
     "chokidar": "^3.3.0",
+    "express": "^4.17.1",
     "memfs": "^2.15.4",
     "memory-fs": "^0.4.1",
     "node-sass": "^4.13.0",
@@ -50,7 +51,6 @@
     "react-dom": "^16.8.6",
     "recursive-readdir": "^2.2.2",
     "recursive-readdir-ext": "^2.3.0",
-    "serve-handler": "^6.1.2",
     "webpack": "^4.35.2"
   },
   "peerDependencies": {
