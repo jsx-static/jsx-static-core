@@ -7,6 +7,6 @@
     "strict": false,
     "esModuleInterop": true
   },
-  "include": [ "src", "tests" ],
+  "include": [ "src", "tests", "lib/index.js" ],
   "exclude": [ "node_modules" ]
 }
