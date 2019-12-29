@@ -118,6 +118,8 @@ function watch(params: any, memfs?: boolean) {
 
   const data = genData(config)
   return packer.watch({}, (err, stats) => {
+    const data = genData(config)
+
     Promise.all([data]).then(([data]) => {
       console.log("compiled")
       if (stats.hasErrors()) console.error(stats.compilation.errors)
