@@ -1,11 +1,10 @@
-- [x] add data injection
+- [ ] add data injection
 - [ ] make config files work
-- [x] workspace validation
-- [x] i should prob have tests too...
+- [ ] workspace validation
+- [ ] i should prob have tests too...
 - [ ] assets
-  - [ ] ~~scss, sass~~, less, stulus
+  - [ ] scss, sass, less, stulus
   - [ ] coffee script, babel
-- [x] watching
+- [ ] watching
 - [ ] speed up compiler
 - [ ] create react app style app creator
-- [ ]
