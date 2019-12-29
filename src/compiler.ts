@@ -4,7 +4,6 @@ import { ReactElement } from "react"
 
 import { isClass } from "./util"
 
-
 interface Compiled {
   filename: string,
   html: string
@@ -18,14 +17,14 @@ function genHTML(component: string, data: any, basename: string): Compiled[] {
   const page = eval(component)
   let template
   try {
-    template = new page.default(data)
+    template = new page(data)
   } catch {
-    template = page.default(data)
+    template = page(data)
   }
   if (React.isValidElement(template)) {
     return [{
       filename: basename,
-      html: compile(page.default(data))
+      html: compile(page(data))
     }]
   } else {
     const iterator = template.iterator && template.iterator()

@@ -17,7 +17,8 @@ interface BuildConfig {
   assetsDir: string,
   dataEntry: string,
   fs: any,
-  webpackConfig?: webpack.Configuration
+  webpackConfig?: webpack.Configuration,
+  dev: boolean
 }
 
 const defaultBuildConfig: BuildConfig = {
@@ -28,12 +29,14 @@ const defaultBuildConfig: BuildConfig = {
   styleDir: "/style",
   assetsDir: "/assets",
   fs,
-  dataEntry: "index.js"
+  dataEntry: "index.js",
+  dev: false
 }
 
-function genWebpackConfig(buildConfig: BuildConfig): webpack.Configuration {
+function genPackerConfig(buildConfig: BuildConfig): webpack.Configuration {
   return {
     mode: "development",
+    devtool: false,
     entry: () =>
       new Promise((res, rej) => {
         recursive(path.join(getRoot(), buildConfig.siteDir), { fs: buildConfig.fs }, (err, files) => {
@@ -51,6 +54,7 @@ function genWebpackConfig(buildConfig: BuildConfig): webpack.Configuration {
         path.join(getRoot(), buildConfig.componentDir),
         path.join(getRoot(), "node_modules")
       ],
+      extensions: [".js"],
     },
     module: {
       rules: [
@@ -58,6 +62,10 @@ function genWebpackConfig(buildConfig: BuildConfig): webpack.Configuration {
           test: /\.jsx$/,
           exclude: /(node_modules)/,
           use: [
+            {
+              loader: path.resolve(__dirname, "loader.js"),
+              options: {} 
+            },
             {
               loader: 'babel-loader',
               options: {
@@ -78,67 +86,7 @@ function genWebpackConfig(buildConfig: BuildConfig): webpack.Configuration {
     plugins: [
       new webpack.ProvidePlugin({
         'React': 'react'
-      })
-    ]
-  }
-
-  return {
-    mode: "development",
-    entry: () =>
-      new Promise((res, rej) => {
-        recursive(path.join(getRoot(), buildConfig.siteDir), {
-          fs: buildConfig.fs
-        }, (err, files) => {
-          if (err) rej(err)
-          else res(files.reduce((a, c) => { a[path.basename(c).replace(".jsx", ".html")] = c; return a }, {}))
-        })
       }),
-    // devtool: "eval",
-    // output is in memory thus no actual file is written
-    output: {
-      filename: "[id]",
-      path: "/",
-    },
-    // components included in order to allow for simple including of the components dir
-    resolve: {
-      modules: [
-        "node_modules",
-        getPath(path.join(getRoot(), buildConfig.siteDir)),
-        path.join(getRoot(), "node_modules")
-      ],
-    },
-    performance: {
-      hints: "warning"
-    },
-    module: {
-      rules: [
-        // transform jsx files
-        {
-          test: /\.jsx$/,
-          exclude: /(node_modules)/,
-          use: [
-            {
-              loader: 'babel-loader',
-              options: {
-                presets: [['@babel/preset-env', {
-                  targets: {
-                    esmodules: false,
-                    node: "current"
-                  },
-                  modules: "cjs"
-                }]],
-                plugins: ["@babel/plugin-transform-react-jsx"]
-              }
-            },
-          ]
-        }
-      ]
-    },
-    // lets the user not have to include react every file
-    plugins: [
-      new webpack.ProvidePlugin({
-        'React': 'react'
-      })
     ]
   }
 }
@@ -152,6 +100,6 @@ function getConfig(pConfig: any): BuildConfig {
 export {
   BuildConfig,
   defaultBuildConfig,
-  genWebpackConfig,
+  genPackerConfig,
   getConfig,
 }

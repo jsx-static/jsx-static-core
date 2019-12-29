@@ -2,18 +2,16 @@ import * as nfs from "fs"
 import * as path from "path"
 
 import webpack from "webpack"
+import WebpackDevServer from "webpack-dev-server"
 import MemFS from "memory-fs"
 
 import { getRoot, setRoot, setPostProcess, postProcess } from "./util/file"
-import { genWebpackConfig, getConfig } from "./config"
+import { genPackerConfig, getConfig } from "./config"
 import { testWorkspace, prepareWorkspace } from "./workspace"
 import { genHTML } from "./compiler"
 import { genData } from "./dataLoader"
 import { watchSass, buildSass } from "./sass"
-
-import handler from "serve-handler"
-import http from "http"
-
+import { fs } from "memfs"
 
 function build(params: any, memfs?: boolean) {
   if (memfs) {
@@ -24,7 +22,7 @@ function build(params: any, memfs?: boolean) {
   const mfs = new MemFS()
 
   const config = getConfig(params)
-  const packer = webpack(genWebpackConfig(config))
+  const packer = webpack(genPackerConfig(config))
 
   packer.inputFileSystem = config.fs
   packer.outputFileSystem = mfs
@@ -34,7 +32,7 @@ function build(params: any, memfs?: boolean) {
     prepareWorkspace(config)
   }
 
-  buildSass(config)
+  // buildSass(config)
 
   const data = genData(config)
   return new Promise((res, rej) => {
@@ -59,6 +57,44 @@ function build(params: any, memfs?: boolean) {
   })
 }
 
+function dev(params: any, memfs?: boolean) {
+  if (memfs) {
+    setRoot("")
+    setPostProcess((str: any) => str.replace(/\\/g, "/"))
+  } else setRoot(path.resolve("."))
+
+  const mfs = new MemFS()
+
+  const packerConfig = getConfig({ dev: true, ...params })
+  const packer = webpack(genPackerConfig(packerConfig))
+  
+  packer.inputFileSystem = packerConfig.fs
+  packer.outputFileSystem = mfs
+  
+  if (!testWorkspace(packerConfig)) {
+    console.error("needed folders do not exist, making them")
+    prepareWorkspace(packerConfig)
+  }
+  
+  watchSass(packerConfig)
+  
+  const data = genData(packerConfig)
+  
+  const server = new WebpackDevServer(packer, {
+    open: true,
+    inline: true,
+    publicPath: '/',
+    contentBase: path.join(getRoot(), packerConfig.outputDir),
+    stats: {
+      colors: true,
+    },
+  })
+
+  server.listen(8080, '127.0.0.1', () => {
+    console.log('Starting server on http://localhost:8080')
+  })
+}
+
 function watch(params: any, memfs?: boolean) {
   if (memfs) {
     setRoot("")
@@ -67,8 +103,8 @@ function watch(params: any, memfs?: boolean) {
 
   const mfs = new MemFS()
 
-  const config = getConfig(params)
-  const packer = webpack(genWebpackConfig(config))
+  const config = getConfig({ dev: true, ...params })
+  const packer = webpack(genPackerConfig(config))
 
   packer.inputFileSystem = config.fs
   packer.outputFileSystem = mfs
@@ -80,23 +116,13 @@ function watch(params: any, memfs?: boolean) {
 
   watchSass(config)
 
-  const server = http.createServer((request, response) => {
-    return handler(request, response, {
-      public: path.join(getRoot(), config.outputDir)
-    })
-  })
-
-  server.listen(8000, () => {
-    console.log('Running at http://localhost:8000')
-  })
-
   const data = genData(config)
   return packer.watch({}, (err, stats) => {
     Promise.all([data]).then(([data]) => {
       console.log("compiled")
+      if (stats.hasErrors()) console.error(stats.compilation.errors)
       // @ts-ignore // outputFileSystem.data is not a thing except it is because mfs
       for (let name in packer.outputFileSystem.data) {
-        if (stats.hasErrors()) console.error(stats.compilation.errors)
         // @ts-ignore // outputFileSystem.data is not a thing except it is because mf
         const compiled = eval(packer.outputFileSystem.data[name].toString())
         const outFile = path.basename(name).replace(".jsx", ".html")
@@ -111,5 +137,6 @@ function watch(params: any, memfs?: boolean) {
 
 export {
   build,
-  watch
+  watch,
+  dev
 }

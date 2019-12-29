@@ -2,7 +2,6 @@ import * as path from "path"
 
 import { BuildConfig } from "./config"
 import { getPath } from "./util/file"
-import { error } from "./error"
 
 function genData(config: BuildConfig): any { // data is implicitly arbitrary therefore any, should prob be an object tho
   return new Promise((res, rej) => {
