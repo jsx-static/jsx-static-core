@@ -1,23 +1,34 @@
 import webpack from "webpack"
-import WebpackDevServer from "webpack-dev-server"
 import { getConfig } from "./config"
-import { fs as mfs } from 'memfs'
-import path from "path"
-
+import MemoryFileSystem from "memory-fs"
+import { genHTML } from "./compiler"
+import express from "express"
 
 export function dev() {
-  const packer = webpack(getConfig(false))
+  const packer = webpack(getConfig(false, true))
+  const webpackOutputFs = new MemoryFileSystem()
+  
+  packer.outputFileSystem = webpackOutputFs
 
-  const server = new WebpackDevServer(packer, {
-    stats: {
-      colors: true
+  const serverFs = new MemoryFileSystem()
+
+  packer.watch({}, (err, stats) => {
+    for(let file in webpackOutputFs.data) {
+      console.log(file)
+      serverFs.writeFile("/" + file, genHTML(webpackOutputFs.data[file].toString()), console.log)
     }
   })
 
-  server.listen(8000, (err) => {
-    console.error(err)
+  const server = express()
+  server.get("/*", (req, res) => {
+    console.log("oof")
+    console.log(req.path)
+    console.log(serverFs.data)
+    res.setHeader("Content-Type", "text/html")
+    res.send(serverFs.readFileSync(req.path))
   })
-  //@ts-ignore
+
+  server.listen(8000, () => {})
 }
 
 export default {

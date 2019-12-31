@@ -2,26 +2,31 @@ import webpack from "webpack"
 import recursive from "recursive-readdir-ext"
 import path from "path"
 
-export function getConfig(mem: boolean): webpack.Configuration {
+export function getConfig(memIn: boolean, memOut: boolean): webpack.Configuration {
   return {
     entry: () => 
     new Promise((res, rej) => {
-      recursive(path.join(mem ? "" : path.resolve("."), "site"), {}, (err, files) => {
+      recursive(path.join(memIn ? "" : path.resolve("."), "site"), {}, (err, files) => {
           if(err) rej(err)
           else {
-            console.log(files)
-            res(files)
+            res(files.reduce((a, f) => { a[path.basename(f)] = f; return a }, {}))
           }
         }
       )
     }),
+    output: {
+      filename: "[name]",
+      path: memOut ? "/" : path.join(path.resolve("."), "/build")
+    },
     module: {
       rules: [
         {
           test: /\.jsx$/,
-          //enforce: "post",
-
           use: [
+            {
+              loader: path.resolve(__dirname, "loader.js"),
+              options: {} 
+            },
             {
               loader: 'babel-loader',
               options: {
@@ -38,6 +43,9 @@ export function getConfig(mem: boolean): webpack.Configuration {
           ]
         }
       ]
-    }
+    },
+    plugins: [
+      new webpack.ProvidePlugin({ "React": 'react' })
+    ]
   }
 }
