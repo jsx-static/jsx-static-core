@@ -4,7 +4,7 @@ import ReactDOMServer from "react-dom/server"
 const DOCTYPE = "<!DOCTYPE html>"
 
 export function genHTML(source: string): string {
-  const page = eval(source)()
+  const page = eval(source).default()
   if(React.isValidElement(page)) {
     return DOCTYPE + ReactDOMServer.renderToString(page)
   } else {
