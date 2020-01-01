@@ -39,7 +39,6 @@ const buildCallback = (err: any, stats: webpack.Stats, config: JsxsConfig) => {
   else {
     //@ts-ignore // data isn't normally a part of a fs but in this case it is because it will always be memfs
     buildDir(stats.compilation.compiler.outputFileSystem.data, "", stats, config)
-    console.log(config.outputFs.data[path.join("build", "Simple Functional Page.jsx").replace(".jsx", ".html")].toString())
     if(config.hooks && config.hooks.postEmit) config.hooks.postEmit()
   }
 }

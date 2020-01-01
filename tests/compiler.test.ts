@@ -5,23 +5,32 @@ import { fs as mfs, vol } from 'memfs'
 import { ufs } from "unionfs"
 import path from "path"
 
-vol.fromJSON({
+//TODO: test data injection, class components
+
+const fileData = {
   "/site/Simple Functional Page.jsx": "export default () => <h1>hi</h1>",
-})
+}
 
-const outputFs = new MemoryFileSystem()
+vol.fromJSON(fileData)
 
-it("Simple Functional Page.jsx" + " compiles successfully", async done => {
-  await jsxs.build({
-    inputFs: ufs.use(mfs).use(fs),
+const outputFs = new MemoryFileSystem(); // the cursed and unavoidable semicolon :(
+
+beforeAll(done => {
+  jsxs.build({
+    inputFs: ufs.use(mfs).use(fs), // mfs for the site, fs for node_modules
     outputFs,
     hooks: {
-      postEmit: () => {
-        expect(outputFs.data[path.join("build", "Simple Functional Page.jsx").replace(".jsx", ".html")].toString()).toBe("<!DOCTYPE html><h1>hi</h1>")
-        done()
-      }
+      postEmit: () => done()
     }
-  }).then(() => {
-    console.warn("done")
   })
 })
+
+for(let file in fileData) {
+  if(file.indexOf("/site/") === 0) {
+    it(`${file} compiles successfully`, done => {
+      expect(outputFs.data[path.join("build", path.basename(file)).replace(".jsx", ".html")].toString())
+        .toBe("<!DOCTYPE html><h1>hi</h1>")
+      done()
+    })
+  }
+}
