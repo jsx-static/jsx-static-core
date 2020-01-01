@@ -52,7 +52,7 @@ export function genWebpack(config: JsxsConfig): webpack.Compiler {
       recursive(path.join(config.inRoot, config.siteDir), { fs: config.inputFs }, (err, files) => {
         if(err) rej(err)
         else {
-          res(files.reduce((a, f) => { a[path.basename(f)] = f; return a }, {}))
+          res(files.reduce((a, f) => { a[path.relative(path.join(config.inRoot, config.siteDir), f).replace(/\\/, "/")] = f; return a }, {}))
         }
       })
     }),
