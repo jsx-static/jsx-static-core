@@ -2,8 +2,8 @@
   "name": "jsx-static",
   "version": "0.1.2",
   "description": "dab",
-  "main": "lib/index.js",
-  "types": "lib/index.d.ts",
+  "main": "lib/src/index.js",
+  "types": "lib/src/index.d.ts",
   "scripts": {
     "build": "tsc",
     "dev": "tsc -w",
@@ -24,19 +24,22 @@
   },
   "homepage": "https://github.com/jsx-static/jsx-static-core#readme",
   "devDependencies": {
+    "@types/jest": "^24.0.25",
     "@types/memory-fs": "^0.3.2",
     "@types/react": "^16.9.17",
     "@types/react-dom": "^16.9.4",
     "@types/webpack": "^4.41.0",
     "jest": "^24.9.0",
+    "memfs": "^3.0.3",
     "ts-jest": "^24.2.0",
-    "typescript": "^3.7.4"
+    "typescript": "^3.7.4",
+    "unionfs": "^4.2.1"
   },
   "dependencies": {
     "@babel/core": "^7.7.7",
+    "@babel/plugin-transform-react-jsx": "^7.7.7",
     "@babel/preset-env": "^7.7.7",
     "babel-loader": "^8.0.6",
-    "memfs": "^3.0.3",
     "memory-fs": "^0.5.0",
     "react": "^16.12.0",
     "react-dom": "^16.12.0",
