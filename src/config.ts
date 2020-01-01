@@ -11,8 +11,13 @@ export interface JsxsConfig {
   outputDir?: string
   componentDir?: string
   dataDir?: string
-  dataEntry?: string,
-  root?: string
+  dataEntry?: string
+  inRoot?: string
+  outRoot?: string
+  hooks?: { //TODO: flesh these out
+    postProcess?: (source: string) => string
+    postEmit?: () => void
+  }
 }
 
 export const defaultConfig: JsxsConfig = {
@@ -23,13 +28,15 @@ export const defaultConfig: JsxsConfig = {
   componentDir: "/components",
   dataDir: "/data",
   dataEntry: "index.js",
-  root: path.resolve(".")
+  inRoot: path.resolve("."),
+  outRoot: path.resolve("."),
 }
 
 export function getJsxsConfig(config: JsxsConfig): JsxsConfig {
   if(config) {
     let out = { ...defaultConfig, ...config } 
-    if(out.outputFs instanceof(MemoryFileSystem) && !config.root) out.root = ""
+    if(out.inputFs !== fs && !config.inRoot) out.inRoot = ""
+    if(out.outputFs !== fs && !config.outRoot) out.outRoot = ""
     return out
   }
   else if(fs.existsSync("jsxs.config.json")) return { 
@@ -39,21 +46,19 @@ export function getJsxsConfig(config: JsxsConfig): JsxsConfig {
   else return defaultConfig
 }
 
-export function genWebpack(config: JsxsConfig, memIn: boolean, memOut: boolean): webpack.Compiler {
+export function genWebpack(config: JsxsConfig): webpack.Compiler {
   const wpConfig: webpack.Configuration = {
-    entry: () => 
-    new Promise((res, rej) => {
-      recursive(path.join(memIn ? "" : path.resolve("."), "site"), {}, (err, files) => {
-          if(err) rej(err)
-          else {
-            res(files.reduce((a, f) => { a[path.basename(f)] = f; return a }, {}))
-          }
+    entry: () => new Promise((res, rej) => {
+      recursive(path.join(config.inRoot, config.siteDir), { fs: config.inputFs }, (err, files) => {
+        if(err) rej(err)
+        else {
+          res(files.reduce((a, f) => { a[path.basename(f)] = f; return a }, {}))
         }
-      )
+      })
     }),
     output: {
       filename: "[name]",
-      path: memOut ? "/" : path.join(path.resolve("."), "/build")
+      path: "/"
     },
     module: {
       rules: [
