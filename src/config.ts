@@ -60,6 +60,13 @@ export function genWebpack(config: JsxsConfig): webpack.Compiler {
       filename: "[name]",
       path: "/"
     },
+    resolve: {
+      modules: [
+        path.join(path.resolve("."), "node_modules"),
+        path.join(config.inRoot, config.componentDir),
+        path.join(config.inRoot, "node_modules")
+      ]
+    },
     module: {
       rules: [
         {
