@@ -35,8 +35,8 @@ export const defaultConfig: JsxsConfig = {
 export function getJsxsConfig(config: JsxsConfig): JsxsConfig {
   if(config) {
     let out = { ...defaultConfig, ...config } 
-    if(out.inputFs !== fs && !config.inRoot) out.inRoot = ""
-    if(out.outputFs !== fs && !config.outRoot) out.outRoot = ""
+    if(out.inputFs !== fs && !config.inRoot) out.inRoot = "/"
+    if(out.outputFs !== fs && !config.outRoot) out.outRoot = "/"
     return out
   }
   else if(fs.existsSync("jsxs.config.json")) return { 
@@ -48,11 +48,16 @@ export function getJsxsConfig(config: JsxsConfig): JsxsConfig {
 
 export function genWebpack(config: JsxsConfig): webpack.Compiler {
   const wpConfig: webpack.Configuration = {
+    mode: "development",
+    context: config.inRoot,
     entry: () => new Promise((res, rej) => {
       recursive(path.join(config.inRoot, config.siteDir), { fs: config.inputFs }, (err, files) => {
         if(err) rej(err)
         else {
-          res(files.reduce((a, f) => { a[path.relative(path.join(config.inRoot, config.siteDir), f).replace(/\\/, "/")] = f; return a }, {}))
+          res(files.reduce((a, f) => { 
+            a[path.relative(path.join(config.inRoot, config.siteDir), f).replace(/\\/, "/")] = f.replace(/\\/, "/"); 
+            return a 
+          }, {}))
         }
       })
     }),
@@ -67,15 +72,18 @@ export function genWebpack(config: JsxsConfig): webpack.Compiler {
         path.join(config.inRoot, "node_modules")
       ]
     },
+    resolveLoader: {
+      modules: [
+        path.join(path.resolve("."), "node_modules"),
+        path.join(config.inRoot, config.componentDir),
+        path.join(config.inRoot, "node_modules")
+      ]
+    },
     module: {
       rules: [
         {
           test: /\.jsx$/,
           use: [
-            {
-              loader: path.resolve(__dirname, "loader.js"),
-              options: {} 
-            },
             {
               loader: 'babel-loader',
               options: {
@@ -100,8 +108,8 @@ export function genWebpack(config: JsxsConfig): webpack.Compiler {
 
   let compiler = webpack(wpConfig)
 
-  compiler.outputFileSystem = new MemoryFileSystem()
   compiler.inputFileSystem = config.inputFs
+  compiler.outputFileSystem = new MemoryFileSystem()
 
   return compiler
 }
