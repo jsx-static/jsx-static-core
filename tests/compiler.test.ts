@@ -13,7 +13,7 @@ const fileData = {
 
 vol.fromJSON(fileData)
 
-const outputFs = new MemoryFileSystem(); // the cursed and unavoidable semicolon :(
+const outputFs = new MemoryFileSystem()
 
 beforeAll(done => {
   jsxs.build({
