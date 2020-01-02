@@ -3,6 +3,7 @@ import { genHTML } from "./compiler"
 import path from "path"
 import webpack from "webpack"
 import MemoryFileSystem from "memory-fs"
+import fs from "fs"
 
 function prepareWorkspace(config: JsxsConfig) {
   function create(dir: string, fs: any) {
@@ -19,14 +20,20 @@ function prepareWorkspace(config: JsxsConfig) {
 }
 
 let dataCache = {}
-function buildDir(dir, dirName, stats, config) {
-  for(let file in dir) { //TODO: make this handle nesting
+function buildDir(dir: any, dirName: string, stats: webpack.Stats, config: JsxsConfig) {
+  for(let file in dir) {
     if(path.extname(file) === ".html" && dir[file] instanceof Buffer) {
-      const filepath = path.join(config.outRoot, config.outputDir, dirName, file).replace(/\\/, "/").replace(".jsx", ".html")
-      config.outputFs.mkdirSync(path.dirname(filepath), { recursive: true })
-      config.outputFs.writeFileSync(filepath, genHTML(config, dir[file].toString(), dataCache))
+      const filepath = (() => {
+        const lpath = config.outputFs === fs ? path : path.posix
+        return lpath.join(config.outRoot, config.outputDir, dirName, file).replace(/\\/, "/").replace(".jsx", ".html")
+      })()
+      const outputDir = path.dirname(filepath)
+      if(!config.outputFs.existsSync(outputDir)) config.outputFs.mkdirSync(outputDir, { recursive: true })
+      config.outputFs.writeFileSync(filepath, genHTML(config, file, dir[file].toString(), dataCache))
     } else {
-      buildDir(dir[file], path.join(dirName, file), stats, config)
+      if(!(dir[file] instanceof Buffer)) {
+        buildDir(dir[file], path.join(dirName, file), stats, config)
+      }
     }
   }
 }
@@ -65,20 +72,20 @@ export function build(config?: JsxsConfig) {
 
   const packer = genSiteWebpack(config, outputFs)
   const dataCompiler = genDataWebpack(config, outputFs)
+
   prepareWorkspace(config)
   return new Promise((rej, res) => {
     dataCompiler.run((err, stats) => {
-      if(err) rej(err)
-      else {
-        buildCallback(err, stats, config, true)
-        packer.run((err, stats) => {
-          if(err) rej(err)
-          else {
-            buildCallback(err, stats, config, false)
-            res()
-          }
-        })
-      }
+      //TODO: figure out a way to distinguish between actually fatal errors
+      if(err) console.error(err) // technically the data stage can fail if the entry does not exist
+      buildCallback(err, stats, config, true)
+      packer.run((err, stats) => {
+        if(err) rej(err)
+        else {
+          buildCallback(err, stats, config, false)
+          res()
+        }
+      })
     })
   })
 }
