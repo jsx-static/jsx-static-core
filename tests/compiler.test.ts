@@ -9,6 +9,11 @@ import path from "path"
 
 const fileData = {
   "/site/Simple Functional Page.jsx": "export default () => <h1>hi</h1>",
+  "/site/Simple Class Page.jsx": `export default class ClassPage extends React.Component {
+    render() {
+      return <h1>hi</h1>
+    }
+  }`,
 }
 
 vol.fromJSON(fileData)
@@ -24,13 +29,14 @@ beforeAll(done => {
     }
   })
 })
+
 jest.setTimeout(10000)
+
 for(let file in fileData) {
   if(file.indexOf("/site/") === 0) {
-    it(`${file} compiles successfully`, done => {
-      expect(outputFs.data[path.join("build", path.basename(file)).replace(".jsx", ".html")].toString())
+    it(`${file} compiles successfully`, () => {
+      expect(outputFs.data["build"][path.basename(file).replace(".jsx", ".html")].toString())
         .toBe("<!DOCTYPE html><h1>hi</h1>")
-      done()
     })
   }
 }
