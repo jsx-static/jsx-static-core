@@ -3,3 +3,4 @@
 - class baased sites
 - multioutput
 - make subpaths in site actually mean something
+- compile when data files change and when new files are created

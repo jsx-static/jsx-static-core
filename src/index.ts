@@ -3,30 +3,27 @@ import { genHTML } from "./compiler"
 import path from "path"
 import webpack from "webpack"
 import fs from "fs"
-import { fs as mfs } from "memfs"
 
 function prepareWorkspace(config: JsxsConfig) {
-  function create(dir: string) {
+  function create(dir: string, fs: any) {
     if(!config.inputFs.existsSync(path.join(config.inRoot, dir))) {
       console.log(`${dir} not found, creating ${dir}`)
       config.inputFs.mkdir(path.join(config.inRoot, dir), err => { if(err) console.error(`failed to create ${dir}`) })
     }
   }
 
-  create(config.outputDir)
-  create(config.componentDir)
-  create(config.dataDir)
-  create(config.siteDir)
+  create(config.outputDir, config.outputFs)
+  create(config.componentDir, config.inputFs)
+  create(config.dataDir, config.inputFs)
+  create(config.siteDir, config.inputFs)
 }
 
 function buildDir(dir, dirName, stats, config) {
   for(let file in dir) { //TODO: make this handle nesting
     if(dir[file] instanceof Buffer) {
       const filepath = path.join(config.outRoot, config.outputDir, dirName, file).replace(/\\/, "/").replace(".jsx", ".html")
-      fs.mkdirSync(path.dirname(filepath), { recursive: true })
-      config.outputFs.writeFileSync(
-        filepath,
-        genHTML(config, dir[file].toString()))
+      config.outputFs.mkdirSync(path.dirname(filepath), { recursive: true })
+      config.outputFs.writeFileSync(filepath, genHTML(config, dir[file].toString()))
     } else {
       buildDir(dir[file], path.join(dirName, file), stats, config)
     }
