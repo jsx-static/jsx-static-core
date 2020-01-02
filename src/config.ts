@@ -2,7 +2,6 @@ import webpack from "webpack"
 import recursive from "recursive-readdir-ext"
 import path from "path"
 import fs from "fs"
-import MemoryFileSystem from "memory-fs"
 
 export interface JsxsConfig {
   inputFs?: any
@@ -16,7 +15,8 @@ export interface JsxsConfig {
   outRoot?: string
   hooks?: { //TODO: flesh these out
     postProcess?: (source: string) => string
-    postEmit?: () => void
+    postSiteEmit?: () => void
+    postDataEmit?: () => void
   }
 }
 
@@ -46,16 +46,17 @@ export function getJsxsConfig(config: JsxsConfig): JsxsConfig {
   else return defaultConfig
 }
 
-export function genWebpack(config: JsxsConfig): webpack.Compiler {
-  const wpConfig: webpack.Configuration = {
+function getSiteCompiler(config: JsxsConfig): webpack.Configuration {
+  return {
     mode: "development",
+    name: "site compiler",
     context: config.inRoot,
     entry: () => new Promise((res, rej) => {
       recursive(path.join(config.inRoot, config.siteDir), { fs: config.inputFs }, (err, files) => {
         if(err) rej(err)
         else {
           res(files.reduce((a, f) => { 
-            a[path.relative(path.join(config.inRoot, config.siteDir), f).replace(/\\/, "/")] = f.replace(/\\/, "/"); 
+            a[path.relative(path.join(config.inRoot, config.siteDir), f).replace(/\\/, "/").replace(".jsx", ".html")] = f.replace(/\\/, "/"); 
             return a 
           }, {}))
         }
@@ -75,7 +76,6 @@ export function genWebpack(config: JsxsConfig): webpack.Compiler {
     resolveLoader: {
       modules: [
         path.join(path.resolve("."), "node_modules"),
-        path.join(config.inRoot, config.componentDir),
         path.join(config.inRoot, "node_modules")
       ]
     },
@@ -98,18 +98,77 @@ export function genWebpack(config: JsxsConfig): webpack.Compiler {
               }
             }
           ]
-        }
+        },
       ]
     },
     plugins: [
       new webpack.ProvidePlugin({ "React": 'react' })
     ]
   }
+}
 
-  let compiler = webpack(wpConfig)
+function getDataCompiler(config: JsxsConfig): webpack.Configuration {
+  return {
+    mode: "development",
+    name: "data compiler",
+    context: config.inRoot,
+    entry: path.join(config.dataDir, config.dataEntry),
+    output: {
+      filename: "__jsxs_data__.js",
+      path: "/"
+    },
+    resolve: {
+      modules: [
+        path.join(path.resolve("."), "node_modules"),
+        path.join(config.inRoot, config.dataDir),
+        config.inRoot,
+        path.join(config.inRoot, "node_modules")
+      ]
+    },
+    resolveLoader: {
+      modules: [
+        path.join(path.resolve("."), "node_modules"),
+        path.join(config.inRoot, "node_modules")
+      ]
+    },
+    module: {
+      rules: [
+        {
+          test: /\.js$/,
+          use: [
+            {
+              loader: 'babel-loader',
+              options: {
+                presets: [['@babel/preset-env', {
+                  targets: {
+                    esmodules: false,
+                    node: "current"
+                  },
+                  modules: "cjs"
+                }]],
+              }
+            }
+          ]
+        },
+      ]
+    },
+  }
+}
 
+export function genDataWebpack(config: JsxsConfig, outputFs: any): webpack.Compiler {
+  let compiler = webpack(getDataCompiler(config))
+  
   compiler.inputFileSystem = config.inputFs
-  compiler.outputFileSystem = new MemoryFileSystem()
+  compiler.outputFileSystem = outputFs
+
+  return compiler
+}
+
+export function genSiteWebpack(config: JsxsConfig, outputFs: any): webpack.Compiler {
+  let compiler = webpack(getSiteCompiler(config))
+  
+  compiler.inputFileSystem = config.inputFs
+  compiler.outputFileSystem = outputFs
 
   return compiler
 }

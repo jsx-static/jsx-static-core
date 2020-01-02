@@ -5,8 +5,8 @@ import { getData } from "./data"
 
 const DOCTYPE = "<!DOCTYPE html>"
 
-export function genHTML(config: JsxsConfig, source: string): string {
-  const page = eval(source).default(getData(config))
+export function genHTML(config: JsxsConfig, source: string, data: any): string {
+  const page = eval(source).default(data)
   if(React.isValidElement(page)) {
     const html = DOCTYPE + ReactDOMServer.renderToStaticMarkup(page)
     if(config.hooks && config.hooks.postProcess) return config.hooks.postProcess(html)
