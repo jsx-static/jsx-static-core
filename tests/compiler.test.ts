@@ -20,11 +20,11 @@ beforeAll(done => {
     inputFs: ufs.use(mfs).use(fs), // mfs for the site, fs for node_modules
     outputFs,
     hooks: {
-      postEmit: () => done()
+      postSiteEmit: () => done()
     }
   })
 })
-
+jest.setTimeout(10000)
 for(let file in fileData) {
   if(file.indexOf("/site/") === 0) {
     it(`${file} compiles successfully`, done => {
