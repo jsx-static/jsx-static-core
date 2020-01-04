@@ -5,15 +5,16 @@ import { fs as mfs, vol } from 'memfs'
 import { ufs } from "unionfs"
 import path from "path"
 
-///
-/// this will spit out an error about not having a data entry, this is fine, if all the tests pass then it is good
-///
-
 const fileData = {
-  "/site/Simple Functional Page.jsx": `export default () => <h1>hi</h1>`,
-  "/site/Simple Class Page.jsx": `export default class extends React.Component {
+  "/data/index.js": `export default { hello: "hi" }`,
+  "/site/Data Functional Page.jsx": `export default props => <h1>{ props.hello }</h1>`,
+  "/site/Data Class Page.jsx": `export default class DataPage extends React.Component {
+    constructor(props) {
+      super(props)
+    }
+
     render() {
-      return <h1>hi</h1>
+      return <h1>{ this.props.hello }</h1>
     }
   }`,
 }
@@ -22,15 +23,14 @@ vol.fromJSON(fileData)
 
 const outputFs = new MemoryFileSystem()
 
-beforeAll(done => {
+beforeAll(() => 
   jsxs.build({
     inputFs: ufs.use(mfs).use(fs), // mfs for the site, fs for node_modules
     outputFs,
-    hooks: {
-      postSiteEmit: () => done()
-    }
+    inRoot: "/",
+    dataEntry: "index.js"
   })
-})
+)
 
 jest.setTimeout(10000)
 

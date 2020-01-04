@@ -71,7 +71,7 @@ function getSiteCompiler(config: JsxsConfig): webpack.Configuration {
         path.join(path.resolve("."), "node_modules"),
         path.join(config.inRoot, config.componentDir),
         path.join(config.inRoot, "node_modules")
-      ]
+      ],
     },
     resolveLoader: {
       modules: [
@@ -110,9 +110,9 @@ function getSiteCompiler(config: JsxsConfig): webpack.Configuration {
 function getDataCompiler(config: JsxsConfig): webpack.Configuration {
   return {
     mode: "development",
-    name: "data compiler",
+    name: "site compiler",
     context: config.inRoot,
-    entry: path.join(config.dataDir, config.dataEntry),
+    entry: path.posix.join(config.dataDir, config.dataEntry),
     output: {
       filename: "__jsxs_data__.js",
       path: "/"
@@ -121,9 +121,8 @@ function getDataCompiler(config: JsxsConfig): webpack.Configuration {
       modules: [
         path.join(path.resolve("."), "node_modules"),
         path.join(config.inRoot, config.dataDir),
-        config.inRoot,
         path.join(config.inRoot, "node_modules")
-      ]
+      ],
     },
     resolveLoader: {
       modules: [
@@ -146,12 +145,13 @@ function getDataCompiler(config: JsxsConfig): webpack.Configuration {
                   },
                   modules: "cjs"
                 }]],
+                plugins: ["@babel/plugin-transform-react-jsx"]
               }
             }
           ]
         },
       ]
-    },
+    }
   }
 }
 
