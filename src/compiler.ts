@@ -1,15 +1,20 @@
 import React from "react"
 import ReactDOMServer from "react-dom/server"
 import { JsxsConfig } from "./config"
-import { isClass } from "./util"
+import { isReactClass } from "./util"
 
 const DOCTYPE = "<!DOCTYPE html>"
 
 export function genHTML(config: JsxsConfig, filename: string, source: string, data: any): string {
   const component = eval(source).default
-  const page = isClass(component)
-    ? (new component(data)).render()
+  const page = isReactClass(component)
+    ? (() => {
+      const page = new component(data)
+      return React.isValidElement(page) ? page : page.render()
+      // return page.render()
+    })()
     : component(data)
+
   if(React.isValidElement(page)) {
     const html = DOCTYPE + ReactDOMServer.renderToStaticMarkup(page)
     if(config.hooks && config.hooks.postProcess) return config.hooks.postProcess(html)

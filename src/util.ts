@@ -1,8 +1,3 @@
-export function isClass(func) {
-  try {
-    func() // classes cannot be called as functions
-    return false
-  } catch {
-    return true
-  }
+export function isReactClass(component: any): boolean {
+  return !!(component.prototype && (component.prototype.isReactComponent || component.prototype.render))
 }

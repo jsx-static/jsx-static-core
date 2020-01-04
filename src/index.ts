@@ -74,13 +74,14 @@ export function build(config?: JsxsConfig) {
   const dataCompiler = genDataWebpack(config, outputFs)
 
   prepareWorkspace(config)
-  return new Promise((rej, res) => {
+  return new Promise((res, rej) => {
     dataCompiler.run((err, stats) => {
       //TODO: figure out a way to distinguish between actually fatal errors
-      if(err) console.error(err) // technically the data stage can fail if the entry does not exist
+      if(err) console.log(err) // technically the data stage can fail if the entry does not exist
       buildCallback(err, stats, config, true)
       packer.run((err, stats) => {
         if(err) rej(err)
+        if(stats.hasErrors()) rej(stats.toString())
         else {
           buildCallback(err, stats, config, false)
           res()
