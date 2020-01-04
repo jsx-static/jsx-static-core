@@ -68,15 +68,15 @@ function getSiteCompiler(config: JsxsConfig): webpack.Configuration {
     },
     resolve: {
       modules: [
-        path.join(path.resolve("."), "node_modules"),
-        path.join(config.inRoot, config.componentDir),
-        path.join(config.inRoot, "node_modules")
+        path.posix.join(path.resolve("."), "node_modules"),
+        path.posix.join(config.inRoot, config.componentDir),
+        path.posix.join(config.inRoot, "node_modules")
       ],
     },
     resolveLoader: {
       modules: [
-        path.join(path.resolve("."), "node_modules"),
-        path.join(config.inRoot, "node_modules")
+        path.posix.join(path.resolve("."), "node_modules"),
+        path.posix.join(config.inRoot, "node_modules")
       ]
     },
     module: {
@@ -119,15 +119,15 @@ function getDataCompiler(config: JsxsConfig): webpack.Configuration {
     },
     resolve: {
       modules: [
-        path.join(path.resolve("."), "node_modules"),
-        path.join(config.inRoot, config.dataDir),
-        path.join(config.inRoot, "node_modules")
+        path.posix.join(path.resolve("."), "node_modules"),
+        path.posix.join(config.inRoot, config.dataDir),
+        path.posix.join(config.inRoot, "node_modules")
       ],
     },
     resolveLoader: {
       modules: [
-        path.join(path.resolve("."), "node_modules"),
-        path.join(config.inRoot, "node_modules")
+        path.posix.join(path.resolve("."), "node_modules"),
+        path.posix.join(config.inRoot, "node_modules")
       ]
     },
     module: {
