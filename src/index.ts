@@ -23,13 +23,13 @@ let dataCache = {}
 function buildDir(dir: any, dirName: string, stats: webpack.Stats, config: JsxsConfig) {
   for(let file in dir) {
     if(path.extname(file) === ".html" && dir[file] instanceof Buffer) {
-      const filepath = (() => {
-        const lpath = config.outputFs === fs ? path : path.posix
-        return lpath.join(config.outRoot, config.outputDir, dirName, file).replace(/\\/, "/").replace(".jsx", ".html")
-      })()
-      const outputDir = path.dirname(filepath)
+      const outputDir = path.posix.dirname(path.posix.join(config.outRoot, config.outputDir, dirName, file).replace(/\\/, "/").replace(".jsx", ".html"))
+      
       if(!config.outputFs.existsSync(outputDir)) config.outputFs.mkdirSync(outputDir, { recursive: true })
-      config.outputFs.writeFileSync(filepath, genHTML(config, file, dir[file].toString(), dataCache))
+      const outputPages = genHTML(config, file, dir[file].toString(), dataCache)
+      outputPages.forEach(page => {
+        config.outputFs.writeFileSync(path.posix.join(outputDir, page.filename), page.html)
+      })
     } else {
       if(!(dir[file] instanceof Buffer)) {
         buildDir(dir[file], path.join(dirName, file), stats, config)

@@ -5,7 +5,12 @@ import { isReactClass } from "./util"
 
 const DOCTYPE = "<!DOCTYPE html>"
 
-export function genHTML(config: JsxsConfig, filename: string, source: string, data: any): string {
+export interface Compilation {
+  html: string,
+  filename: string
+}
+
+export function genHTML(config: JsxsConfig, filename: string, source: string, data: any): Compilation[] {
   const component = eval(source).default
   const page = isReactClass(component)
     ? (() => {
@@ -17,10 +22,19 @@ export function genHTML(config: JsxsConfig, filename: string, source: string, da
 
   if(React.isValidElement(page)) {
     const html = DOCTYPE + ReactDOMServer.renderToStaticMarkup(page)
-    if(config.hooks && config.hooks.postProcess) return config.hooks.postProcess(html)
-    else return html
+    if(config.hooks && config.hooks.postProcess) return [{
+      html: config.hooks.postProcess(html),
+      filename
+    }]
+    else return [{
+      html,
+      filename
+    }]
   } else {
-    console.error(filename, "not a valid react element")
-    return "<h1>not a valid react element</h1>" //TODO: make a better error page
+    console.error(filename, "is not a valid react element")
+    return [{
+      html: "<h1>not a valid react element</h1>",
+      filename
+    }] //TODO: make a better error page
   }
 }
