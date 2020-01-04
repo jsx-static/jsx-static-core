@@ -16,21 +16,32 @@ const fileData = {
       return <h1>hi</h1>
     }
   }`,
+  "/components/Hello.jsx": `export default props => <h1>hi</h1>`,
+  "/site/Component Functional Page.jsx": `
+    import Hello from "Hello.jsx"
+    export default () => <Hello />
+  `,
+  "/site/Component Class Page.jsx": `
+    import Hello from "Hello.jsx"
+    export default class extends React.Component {
+      render() {
+        return <Hello />
+      }
+    }
+  `,
+
 }
 
 vol.fromJSON(fileData)
 
 const outputFs = new MemoryFileSystem()
 
-beforeAll(done => {
+beforeAll(() => 
   jsxs.build({
     inputFs: ufs.use(mfs).use(fs), // mfs for the site, fs for node_modules
-    outputFs,
-    hooks: {
-      postSiteEmit: () => done()
-    }
-  })
-})
+    outputFs
+  })  
+)
 
 jest.setTimeout(10000)
 
@@ -38,7 +49,7 @@ for(let file in fileData) {
   if(file.indexOf("/site/") === 0) {
     test(`${file} compiles successfully`, () => {
       expect(outputFs.data["build"][path.basename(file).replace(".jsx", ".html")].toString())
-        .toBe("<!DOCTYPE html><h1>hi</h1>")
+        .toBe("<!DOCTYPE html><h1>hi</h1>") // all of the pages defined in fileData should compile to this
     })
   }
 }
