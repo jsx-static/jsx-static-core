@@ -6,7 +6,8 @@ import { ufs } from "unionfs"
 import path from "path"
 
 ///
-/// this will spit out an error about not having a data entry, this is fine, if all the tests pass then it is good
+/// this will spit out an error about not having a data entry, this is fine, 
+/// if all the tests pass then it is good
 ///
 
 const fileData = {
