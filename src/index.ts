@@ -1,5 +1,5 @@
 import { genSiteWebpack, JsxsConfig, getJsxsConfig, genDataWebpack } from "./config"
-import { genHTML } from "./compiler"
+import { compilePage } from "./compiler"
 import path from "path"
 import webpack from "webpack"
 import MemoryFileSystem from "memory-fs"
@@ -26,8 +26,9 @@ function buildDir(dir: any, dirName: string, stats: webpack.Stats, config: JsxsC
       const outputDir = path.posix.dirname(path.posix.join(config.outRoot, config.outputDir, dirName, file).replace(/\\/, "/").replace(".jsx", ".html"))
       
       if(!config.outputFs.existsSync(outputDir)) config.outputFs.mkdirSync(outputDir, { recursive: true })
-      const outputPages = genHTML(config, file, dir[file].toString(), dataCache)
+      const outputPages = compilePage(config, file, dir[file].toString(), dataCache)
       outputPages.forEach(page => {
+        if(!config.outputFs.existsSync(path.posix.join(outputDir, path.dirname(page.filename)))) config.outputFs.mkdirSync(path.posix.join(outputDir, path.dirname(page.filename)), { recursive: true })
         config.outputFs.writeFileSync(path.posix.join(outputDir, page.filename), page.html)
       })
     } else {

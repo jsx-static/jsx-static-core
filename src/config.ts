@@ -111,8 +111,8 @@ function getDataCompiler(config: JsxsConfig): webpack.Configuration {
   return {
     mode: "development",
     name: "site compiler",
-    context: config.inRoot,
-    entry: path.posix.join(config.dataDir, config.dataEntry),
+    context: path.posix.join(config.dataDir,config.inRoot),
+    entry:  config.dataEntry,
     output: {
       filename: "__jsxs_data__.js",
       path: "/"
