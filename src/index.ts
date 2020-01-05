@@ -47,10 +47,10 @@ const buildCallback = (err: any, stats: webpack.Stats, config: JsxsConfig, isDat
       try {
         //@ts-ignore // data isn't normally a part of a fs but in this case it is because it will always be memfs
         dataCache = eval(stats.compilation.compiler.outputFileSystem.data["__jsxs_data__.js"].toString()).default
+        if(config.hooks && config.hooks.postDataEmit) config.hooks.postDataEmit()
       } catch(err) {
         console.error(`data failed to compile`)
       }
-      if(config.hooks && config.hooks.postDataEmit) config.hooks.postDataEmit()
     }
     //@ts-ignore // ^
     buildDir(stats.compilation.compiler.outputFileSystem.data, "", stats, config)
