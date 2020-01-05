@@ -2,6 +2,8 @@ import webpack from "webpack"
 import recursive from "recursive-readdir-ext"
 import path from "path"
 import fs from "fs"
+import MiniCssExtractPlugin from "mini-css-extract-plugin"
+import postcssNormalize from "postcss-normalize"
 
 export interface JsxsConfig {
   inputFs?: any
@@ -10,6 +12,7 @@ export interface JsxsConfig {
   outputDir?: string
   componentDir?: string
   dataDir?: string
+  assetDir?: string
   dataEntry?: string
   inRoot?: string
   outRoot?: string
@@ -26,6 +29,7 @@ export const defaultConfig: JsxsConfig = {
   siteDir: "/site",
   outputDir: "/build",
   componentDir: "/components",
+  assetDir: "/assets",
   dataDir: "/data",
   dataEntry: "index.js",
   inRoot: path.resolve("."),
@@ -45,28 +49,81 @@ export function getJsxsConfig(config: JsxsConfig): JsxsConfig {
   return out
 }
 
+// modified from: https://github.com/facebook/create-react-app/blob/master/packages/react-scripts/config/webpack.config.js
+function getStyleLoaders(cssOptions, preProcessor) {
+  const loaders = [
+    MiniCssExtractPlugin.loader,
+    {
+      loader: require.resolve('css-loader'),
+      options: cssOptions,
+    },
+    {
+      loader: require.resolve('postcss-loader'),
+      options: {
+        ident: 'postcss',
+        plugins: () => [
+          require('postcss-flexbugs-fixes'),
+          require('postcss-preset-env')({
+            autoprefixer: {
+              flexbox: 'no-2009',
+            },
+            stage: 3,
+          }),
+          // Adds PostCSS Normalize as the reset css with default options,
+          // so that it honors browserslist config in package.json
+          // which in turn let's users customize the target behavior as per their needs.
+          postcssNormalize(),
+        ],
+      },
+    },
+  ]
+  if (preProcessor) {
+    loaders.push(
+      require.resolve('resolve-url-loader'),
+      require.resolve(preProcessor),
+    )
+  }
+
+  return loaders
+}
+
 export function getPacker(config: JsxsConfig, outputFs: any): webpack.Compiler {
   // windows fix
   const iPath = config.inputFs === fs ? path : path.posix
+  const oPath = config.outputFs === fs ? path : path.posix
+
   let compiler = webpack({
     mode: "development",
     name: "site compiler",
     context: config.inRoot,
     entry: () => new Promise((res, rej) => {
-      recursive(iPath.join(config.inRoot, config.siteDir), { fs: config.inputFs }, (err, files) => {
+      recursive(iPath.join(config.inRoot, config.siteDir), { fs: config.inputFs }, (err, siteFiles) => {
         if(err) rej(err)
         else {
-          files = files.reduce((a, f) => {
+          siteFiles = siteFiles.reduce((a, f) => {
             // path is used here to preserve default behavior of relative, f.replace is used because there isn't a function to convert to posix
-            a[path.relative(iPath.join(config.inRoot, config.siteDir), f).replace(".jsx", ".html")] = f.replace(/\\/g, "/"); 
+            a[path.relative(iPath.join(config.inRoot, config.siteDir), f).replace(".jsx", ".html").replace(/\\/g, "/")] = f.replace(/\\/g, "/"); 
             return a 
           }, {})
 
-          if(config.inputFs.existsSync(iPath.join(config.inRoot, config.dataDir, config.dataEntry))) {
-            files["__jsxs_data__.js"] = iPath.join(config.inRoot, config.dataDir, config.dataEntry)
-          }
-          
-          res(files)
+          recursive(iPath.join(config.inRoot, config.assetDir), { fs: config.inputFs }, (err, files) => {
+            if(err) rej(err)
+            else {
+              files = files.reduce((a, f) => {
+                // path is used here to preserve default behavior of relative, *.replace is used because there isn't a function to convert to posix
+                a[path.join("assets", path.relative(iPath.join(config.inRoot, config.assetDir), f)).replace(/\\/g, "/")] = f.replace(/\\/g, "/"); 
+                return a 
+              }, {})
+    
+              if(config.inputFs.existsSync(iPath.join(config.inRoot, config.dataDir, config.dataEntry))) {
+                files["__jsxs_data__.js"] = iPath.join(config.inRoot, config.dataDir, config.dataEntry)
+              }
+
+              files = { ...files, ...siteFiles }
+              
+              res(files)
+            }
+          })
         }
       })
     }),
@@ -75,10 +132,14 @@ export function getPacker(config: JsxsConfig, outputFs: any): webpack.Compiler {
       path: "/"
     },
     resolve: {
+      alias: {
+        path: "path/posix"
+      },
       modules: [
         path.join(path.resolve("."), "node_modules"),
         iPath.join(config.inRoot, config.dataDir),
         iPath.join(config.inRoot, config.componentDir),
+        iPath.join(config.inRoot, config.assetDir),
         iPath.join(config.inRoot, "node_modules")
       ],
     },
@@ -112,6 +173,7 @@ export function getPacker(config: JsxsConfig, outputFs: any): webpack.Compiler {
             }
           ]
         },
+
         {
           test: /\.js$/,
           include: [
@@ -132,8 +194,43 @@ export function getPacker(config: JsxsConfig, outputFs: any): webpack.Compiler {
             }
           ]
         },
+
+        {
+          test: /\.js$/,
+          include: [
+            iPath.join(config.inRoot, config.assetDir),
+          ],
+          use: [
+            {
+              loader: 'babel-loader',
+              options: {
+                presets: [['@babel/preset-env', {
+                  targets: {
+                    esmodules: false,
+                    node: "current"
+                  },
+                  modules: "cjs"
+                }]],
+              }
+            }
+          ]
+        },
+
+        {
+          loader: require.resolve('file-loader'),
+          include: [
+            iPath.join(config.inRoot, config.assetDir),
+          ],
+          exclude: [
+            /\.(js|jsx)$/
+          ],
+          options: {
+            name: "assets/[name].[ext]", 
+          },
+        }
       ]
     },
+
     plugins: [
       new webpack.ProvidePlugin({ 
         "React": 'react',
