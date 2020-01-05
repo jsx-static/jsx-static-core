@@ -12,7 +12,7 @@ const numberObjStr = `{
 const numbers = eval(numberObjStr)
 
 const fileData = {
-  "/site/Iterator Page.jsx": `export default class {
+  "/site/Iterator Page.jsx": `export default class extends React.Component {
     constructor(props) {
       super(props)
     }
@@ -42,7 +42,7 @@ beforeAll(() =>
   })  
 )
 
-for(let number in numbers) {
+for(let number of numbers) {
   test(`${number} instance compiles successfully`, () => {
     expect(outputFs.data["build"][`${number}.html`].toString())
       .toBe(`<!DOCTYPE html><h1>${number}</h1>`)
