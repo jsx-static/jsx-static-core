@@ -28,10 +28,16 @@ export function compilePage(config: JsxsConfig, filename: string, source: string
   if(isClass) {
     const page = new component(data)
     if(page.iterator) {
-      return page.iterator().map(instanceData => ({
-        html: getHTML(config, page.render(instanceData.data), instanceData.filename),
-        filename: instanceData.filename
-      }))
+      const iteratorData = page.iterator()
+      if(Array.isArray(iteratorData)) {
+        return iteratorData.map(instanceData => ({
+          html: getHTML(config, page.render(instanceData.data), instanceData.filename),
+          filename: instanceData.filename
+        }))
+      } else {
+        console.error(`(${ filename }) Data returned from \`iterator\` must be an array!`)
+        return []
+      }
     } else {
       return [{
         html: getHTML(config, new component(data).render(), filename),
