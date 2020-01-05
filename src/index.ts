@@ -29,7 +29,7 @@ function buildDir(dir: any, dirName: string, stats: webpack.Stats, config: JsxsC
       const outputPages = compilePage(config, file, dir[file].toString(), dataCache)
       outputPages.forEach(page => {
         if(!config.outputFs.existsSync(path.posix.join(outputDir, path.dirname(page.filename)))) config.outputFs.mkdirSync(path.posix.join(outputDir, path.dirname(page.filename)), { recursive: true })
-        config.outputFs.writeFileSync(path.posix.join(outputDir, page.filename), page.html)
+        config.outputFs.writeFileSync(path.posix.join(outputDir, page.filename), (config.hooks && config.hooks.postProcess) ? config.hooks.postProcess(page.html) : page.html)
       })
     } else {
       if(!(dir[file] instanceof Buffer)) {
@@ -44,8 +44,12 @@ const buildCallback = (err: any, stats: webpack.Stats, config: JsxsConfig, isDat
   else if(stats.hasErrors()) console.error(stats.toString())
   else {
     if(isData) {
-      //@ts-ignore // data isn't normally a part of a fs but in this case it is because it will always be memfs
-      dataCache = eval(stats.compilation.compiler.outputFileSystem.data["__jsxs_data__.js"].toString()).default
+      try {
+        //@ts-ignore // data isn't normally a part of a fs but in this case it is because it will always be memfs
+        dataCache = eval(stats.compilation.compiler.outputFileSystem.data["__jsxs_data__.js"].toString()).default
+      } catch(err) {
+        console.error(`data failed to compile`)
+      }
       if(config.hooks && config.hooks.postDataEmit) config.hooks.postDataEmit()
     }
     //@ts-ignore // ^
