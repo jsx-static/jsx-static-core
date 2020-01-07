@@ -6,7 +6,7 @@
   "types": "lib/src/index.d.ts",
   "scripts": {
     "build": "tsc",
-    "dev": "tsc -w",
+    "dev": "tsc -w --skipLibCheck",
     "test": "jest"
   },
   "files": [

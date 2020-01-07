@@ -106,24 +106,34 @@ export function getPacker(config: JsxsConfig, outputFs: any): webpack.Compiler {
             return a 
           }, {})
 
-          recursive(iPath.join(config.inRoot, config.assetDir), { fs: config.inputFs }, (err, files) => {
-            if(err) rej(err)
-            else {
-              files = files.reduce((a, f) => {
-                // path is used here to preserve default behavior of relative, *.replace is used because there isn't a function to convert to posix
-                a[path.join("assets", path.relative(iPath.join(config.inRoot, config.assetDir), f)).replace(/\\/g, "/")] = f.replace(/\\/g, "/"); 
-                return a 
-              }, {})
-    
-              if(config.inputFs.existsSync(iPath.join(config.inRoot, config.dataDir, config.dataEntry))) {
-                files["__jsxs_data__.js"] = iPath.join(config.inRoot, config.dataDir, config.dataEntry)
-              }
-
-              files = { ...files, ...siteFiles }
-              
-              res(files)
+          const cb = (files) => {
+            files = files.reduce((a, f) => {
+              // path is used here to preserve default behavior of relative, *.replace is used because there isn't a function to convert to posix
+              a[path.join("assets", path.relative(iPath.join(config.inRoot, config.assetDir), f)).replace(/\\/g, "/")] = f.replace(/\\/g, "/"); 
+              return a 
+            }, {})
+  
+            if(config.inputFs.existsSync(iPath.join(config.inRoot, config.dataDir, config.dataEntry))) {
+              files["__jsxs_data__.js"] = iPath.join(config.inRoot, config.dataDir, config.dataEntry)
             }
-          })
+
+            files = { ...files, ...siteFiles }
+            
+            res(files)
+
+          }
+
+          if(config.inputFs.readdir(iPath.join(config.inRoot, config.assetDir))) {
+            recursive(iPath.join(config.inRoot, config.assetDir), { fs: config.inputFs }, (err, files) => {
+              console.log(config.inputFs.existsSync(iPath.join(config.inRoot, config.assetDir)))
+              if(err) console.log(err)
+  
+              if(err) rej(err)
+              else {
+                cb(files)
+              }
+            })
+          } else cb([])
         }
       })
     }),

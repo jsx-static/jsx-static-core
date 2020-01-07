@@ -29,8 +29,7 @@ const fileData = {
         return <Hello />
       }
     }
-  `,
-
+  `
 }
 
 vol.fromJSON(fileData)

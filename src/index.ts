@@ -3,20 +3,35 @@ import { compilePage } from "./compiler"
 import path from "path"
 import webpack from "webpack"
 import MemoryFileSystem from "memory-fs"
+import { fs } from "memfs"
 
-function prepareWorkspace(config: JsxsConfig) {
-  function create(dir: string, fs: any) {
-    if(!config.inputFs.existsSync(path.join(config.inRoot, dir))) {
+async function prepareWorkspace(config: JsxsConfig) {
+  const promises = []
+  function create(dir: string, fs: any, root: string) {
+    console.log(path.posix.join(root, dir))
+    if(!fs.existsSync(path.posix.join(root, dir))) {
       console.log(`${dir} not found, creating ${dir}`)
-      config.inputFs.mkdir(path.join(config.inRoot, dir), err => { if(err) console.error(`failed to create ${dir}`) })
+      promises.push(new Promise((res, rej) => {
+        fs.mkdir(path.posix.join(root, dir), err => { 
+          if(err) {
+            rej(err + `\nfailed to create ${dir}`)
+          } else {
+            res()
+          }
+        })
+      }))
     }
   }
 
-  create(config.outputDir, config.outputFs)
-  create(config.componentDir, config.inputFs)
-  create(config.dataDir, config.inputFs)
-  create(config.siteDir, config.inputFs)
-  create(config.assetDir, config.inputFs)
+  create(config.assetDir, config.inputFs, config.inRoot)
+  create(config.componentDir, config.inputFs, config.inRoot)
+  create(config.dataDir, config.inputFs, config.inRoot)
+  create(config.siteDir, config.inputFs, config.inRoot)
+  create(config.outputDir, config.outputFs, config.outRoot)
+
+  await Promise.all(promises).then(() => {
+    console.log("asset dir exists: ", config.inputFs.existsSync(path.posix.join(config.inRoot, config.assetDir)))
+  })
 }
 
 let dataCache = {
@@ -49,7 +64,7 @@ function buildDir(dir: any, dirName: string, stats: webpack.Stats, config: JsxsC
   })
 }
 
-const buildCallback = (err: any, stats: webpack.Stats, config: JsxsConfig) => {
+const buildCallback = async (err: any, stats: webpack.Stats, config: JsxsConfig) => {
   if(err) console.error(err)
   else if(stats.hasErrors()) console.error(stats.toString())
   else {
@@ -66,24 +81,25 @@ const buildCallback = (err: any, stats: webpack.Stats, config: JsxsConfig) => {
     }
     buildDir(outputFsData, "", stats, config)
 
-    const promises = [] 
-    console.log(outputFsData)
-    console.log("======")
-    console.log(outputFsData['assets']["index.js"].toString())
-    recursiveMfsReader(outputFsData['assets'], "", (file, data) => {
-      console.log(file)
-      promises.push(new Promise((res, rej) => {
-        const outputDir = path.join(config.outRoot, config.outputDir, "assets", path.dirname(file))
-        if(!config.outputFs.existsSync(outputDir)) config.outputFs.mkdirSync(outputDir, { recursive: true })
-        config.outputFs.writeFile(path.join(outputDir, path.basename(file)), data, (err) => {
-          if(err) rej(err)
-          res()
-        })
-      }))
-    })
+    if(outputFsData['assets']) {
+      const promises = [] 
+      recursiveMfsReader(outputFsData['assets'], "", (file, data) => {
+        console.log(file)
+        promises.push(new Promise((res, rej) => {
+          const outputDir = path.posix.join(config.outRoot, config.outputDir, "assets", path.dirname(file))
+          if(!config.outputFs.existsSync(outputDir)) config.outputFs.mkdirSync(outputDir, { recursive: true })
+          config.outputFs.writeFile(path.posix.join(outputDir, path.basename(file)), data, (err) => {
+            if(err) rej(err)
+            res()
+          })
+        }))
+      })
+  
+      await Promise.all(promises)
+    }
 
-    Promise.all(promises)
     if(config.hooks && config.hooks.postSiteEmit) config.hooks.postSiteEmit()
+
     //@ts-ignore // ^
     stats.compilation.compiler.outputFileSystem.data = {}
   }
@@ -103,9 +119,9 @@ export function watch(config?: JsxsConfig) {
 export function build(config?: JsxsConfig) {
   config = getJsxsConfig(config)
   const outputFs = new MemoryFileSystem()
-
+  
   const packer = getPacker(config, outputFs)
-
+  
   prepareWorkspace(config)
   return new Promise((res, rej) => {
     packer.run((err, stats) => {
