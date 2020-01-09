@@ -28,7 +28,7 @@ const fileData = {
       return <h1>{ instance }</h1>
     }
   }`,
-  "/data/index.js": `export default ` + numberObjStr
+  "/data/index.js": `global.jsxsData = ` + numberObjStr
 }
 
 vol.fromJSON(fileData)

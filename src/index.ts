@@ -3,12 +3,12 @@ import { compilePage } from "./compiler"
 import path from "path"
 import webpack from "webpack"
 import MemoryFileSystem from "memory-fs"
-import { fs } from "memfs"
+import fs from "fs"
+
 
 async function prepareWorkspace(config: JsxsConfig) {
   const promises = []
   function create(dir: string, fs: any, root: string) {
-    console.log(path.posix.join(root, dir))
     if(!fs.existsSync(path.posix.join(root, dir))) {
       console.log(`${dir} not found, creating ${dir}`)
       promises.push(new Promise((res, rej) => {
@@ -29,15 +29,11 @@ async function prepareWorkspace(config: JsxsConfig) {
   create(config.siteDir, config.inputFs, config.inRoot)
   create(config.outputDir, config.outputFs, config.outRoot)
 
-  await Promise.all(promises).then(() => {
-    console.log("asset dir exists: ", config.inputFs.existsSync(path.posix.join(config.inRoot, config.assetDir)))
-  })
+  await Promise.all(promises).then(() => {}).catch(console.error)
 }
 
-let dataCache = {
-  evaluated: {},
-  src: null
-}
+//@ts-ignore // used to extract global data from the data loader
+global.jsxsData = {}
 
 function recursiveMfsReader(dir: any, dirname: string, callback: (file: string, data: Buffer) => void) {
   for(let file in dir) {
@@ -55,7 +51,8 @@ function buildDir(dir: any, dirName: string, stats: webpack.Stats, config: JsxsC
       const outputDir = path.posix.dirname(path.posix.join(config.outRoot, config.outputDir, dirName, file).replace(/\\/, "/").replace(".jsx", ".html"))
       
       if(!config.outputFs.existsSync(outputDir)) config.outputFs.mkdirSync(outputDir, { recursive: true })
-      const outputPages = compilePage(config, file, data.toString(), dataCache.evaluated)
+      //@ts-ignore
+      const outputPages = compilePage(config, file, data.toString(), global.jsxsData)
       outputPages.forEach(page => {
         if(!config.outputFs.existsSync(path.posix.join(outputDir, path.dirname(page.filename)))) config.outputFs.mkdirSync(path.posix.join(outputDir, path.dirname(page.filename)), { recursive: true })
         config.outputFs.writeFileSync(path.posix.join(outputDir, page.filename), (config.hooks && config.hooks.postProcess) ? config.hooks.postProcess(page.html) : page.html)
@@ -70,13 +67,12 @@ const buildCallback = async (err: any, stats: webpack.Stats, config: JsxsConfig)
   else {
     //@ts-ignore // data isn't normally a part of a fs but in this case it is because it will always be memfs
     let outputFsData = stats.compilation.compiler.outputFileSystem.data
-    if(outputFsData["__jsxs_data__.js"] && dataCache.src !== outputFsData["__jsxs_data__.js"].toString()) {
-      dataCache.src = outputFsData["__jsxs_data__.js"].toString()
+    if(outputFsData["__jsxs_data__.js"]) {
       try {
-        dataCache.evaluated = eval(dataCache.src).default
+        eval(outputFsData["__jsxs_data__.js"].toString())
         if(config.hooks && config.hooks.postDataEmit) config.hooks.postDataEmit()
       } catch(err) {
-        console.error(`data failed to compile`)
+        console.error(`data failed to compile: `, err)
       }
     }
     buildDir(outputFsData, "", stats, config)

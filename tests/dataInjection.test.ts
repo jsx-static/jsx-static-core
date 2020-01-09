@@ -6,7 +6,7 @@ import { ufs } from "unionfs"
 import path from "path"
 
 const fileData = {
-  "/data/index.js": `export default { hello: "hi" }`,
+  "/data/index.js": `global.jsxsData = { hello: "hi" }`,
   "/site/Data Functional Page.jsx": `export default props => <h1>{ props.hello }</h1>`,
   "/site/Data Class Page.jsx": `export default class DataPage extends React.Component {
     constructor(props) {

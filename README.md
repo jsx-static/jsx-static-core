@@ -131,7 +131,7 @@ First start with some data:
 
 ```js
 // data/index.js
-export default {
+global.data = {
   blogPosts: [
     {
       title: "Why turtles are great",

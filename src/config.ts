@@ -49,18 +49,24 @@ export function getJsxsConfig(config: JsxsConfig): JsxsConfig {
   return out
 }
 
+const styleRegex = /\.(css|scss|sass)?/
+
 // modified from: https://github.com/facebook/create-react-app/blob/master/packages/react-scripts/config/webpack.config.js
-function getStyleLoaders(cssOptions, preProcessor) {
-  const loaders = [
-    MiniCssExtractPlugin.loader,
+function getStyleLoaders(cssOptions, preProcessor?: string): webpack.RuleSetUse {
+  const loaders: webpack.RuleSetUse = [
     {
-      loader: require.resolve('css-loader'),
+      loader: MiniCssExtractPlugin.loader,
+      options: {
+        esModule: true,
+      }
+    },
+    {
+      loader: 'css-loader',
       options: cssOptions,
     },
     {
-      loader: require.resolve('postcss-loader'),
+      loader: 'postcss-loader',
       options: {
-        ident: 'postcss',
         plugins: () => [
           require('postcss-flexbugs-fixes'),
           require('postcss-preset-env')({
@@ -79,8 +85,8 @@ function getStyleLoaders(cssOptions, preProcessor) {
   ]
   if (preProcessor) {
     loaders.push(
-      require.resolve('resolve-url-loader'),
-      require.resolve(preProcessor),
+      'resolve-url-loader',
+      preProcessor,
     )
   }
 
@@ -93,7 +99,7 @@ export function getPacker(config: JsxsConfig, outputFs: any): webpack.Compiler {
   const oPath = config.outputFs === fs ? path : path.posix
 
   let compiler = webpack({
-    mode: "development",
+    mode: "production",
     name: "site compiler",
     context: config.inRoot,
     entry: () => new Promise((res, rej) => {
@@ -109,7 +115,13 @@ export function getPacker(config: JsxsConfig, outputFs: any): webpack.Compiler {
           const cb = (files) => {
             files = files.reduce((a, f) => {
               // path is used here to preserve default behavior of relative, *.replace is used because there isn't a function to convert to posix
-              a[path.join("assets", path.relative(iPath.join(config.inRoot, config.assetDir), f)).replace(/\\/g, "/")] = f.replace(/\\/g, "/"); 
+              if(f.search(styleRegex) !== -1) {
+                // style should be emited by the MiniCssExtractPlugin
+                //TODO: figure out a way for webpack to process but not emit the raw js css
+                a[path.join("__assets", path.relative(iPath.join(config.inRoot, config.assetDir), f)).replace(/\\/g, "/")] = f.replace(/\\/g, "/"); 
+              } else {
+                a[path.join("assets", path.relative(iPath.join(config.inRoot, config.assetDir), f)).replace(/\\/g, "/")] = f.replace(/\\/g, "/"); 
+              }
               return a 
             }, {})
   
@@ -120,20 +132,24 @@ export function getPacker(config: JsxsConfig, outputFs: any): webpack.Compiler {
             files = { ...files, ...siteFiles }
             
             res(files)
-
           }
 
-          if(config.inputFs.readdir(iPath.join(config.inRoot, config.assetDir))) {
-            recursive(iPath.join(config.inRoot, config.assetDir), { fs: config.inputFs }, (err, files) => {
-              console.log(config.inputFs.existsSync(iPath.join(config.inRoot, config.assetDir)))
-              if(err) console.log(err)
-  
-              if(err) rej(err)
-              else {
-                cb(files)
-              }
-            })
-          } else cb([])
+          try {
+            if(config.inputFs.readdirSync(iPath.join(config.inRoot, config.assetDir))) {
+              recursive(iPath.join(config.inRoot, config.assetDir), { fs: config.inputFs }, (err, files) => {
+                if(err) console.log(err)
+    
+                if(err) rej(err)
+                else {
+                  cb(files.filter(f => {
+                    return path.basename(f).indexOf("_") !== 0
+                  }))
+                }
+              })
+            } else cb([])
+          } catch {
+            cb([])
+          }
         }
       })
     }),
@@ -142,21 +158,20 @@ export function getPacker(config: JsxsConfig, outputFs: any): webpack.Compiler {
       path: "/"
     },
     resolve: {
-      alias: {
-        path: "path/posix"
-      },
       modules: [
         path.join(path.resolve("."), "node_modules"),
         iPath.join(config.inRoot, config.dataDir),
         iPath.join(config.inRoot, config.componentDir),
         iPath.join(config.inRoot, config.assetDir),
+        iPath.join(config.inRoot),
         iPath.join(config.inRoot, "node_modules")
       ],
     },
     resolveLoader: {
       modules: [
         path.join(path.resolve("."), "node_modules"),
-        iPath.join(config.inRoot, "node_modules")
+        iPath.join(config.inRoot, "node_modules"),
+        path.join(__dirname, "..", "..", "node_modules") // for testing
       ]
     },
     module: {
@@ -225,6 +240,30 @@ export function getPacker(config: JsxsConfig, outputFs: any): webpack.Compiler {
             }
           ]
         },
+        
+        {
+          test: /\.css$/,
+          include: [
+            iPath.join(config.inRoot, config.assetDir),
+          ],
+          use: getStyleLoaders({
+            importLoaders: 1
+          }),
+
+          sideEffects: true,
+        },
+
+        {
+          test: /\.(scss|sass)$/,
+          include: [
+            iPath.join(config.inRoot, config.assetDir),
+          ],
+          use: getStyleLoaders({
+              importLoaders: 2,
+          }, 'sass-loader'),
+          
+          sideEffects: true,
+        },
 
         {
           loader: require.resolve('file-loader'),
@@ -232,7 +271,8 @@ export function getPacker(config: JsxsConfig, outputFs: any): webpack.Compiler {
             iPath.join(config.inRoot, config.assetDir),
           ],
           exclude: [
-            /\.(js|jsx)$/
+            /\.(js|jsx|html)$/,
+            styleRegex
           ],
           options: {
             name: "assets/[name].[ext]", 
@@ -242,6 +282,13 @@ export function getPacker(config: JsxsConfig, outputFs: any): webpack.Compiler {
     },
 
     plugins: [
+      new MiniCssExtractPlugin({
+        // @ts-ignore // for some reason MiniCssExtractPlugin has not updated this, 
+        //TODO: check if deprecated
+        moduleFilename: chunk => path.posix.relative(config.inRoot.replace(/\\/g, "/"), chunk.entryModule.rawRequest).replace(styleRegex, ".css"),
+        esModule: true
+      }),
+
       new webpack.ProvidePlugin({ 
         "React": 'react',
         "Safe": ['react-safe', 'default'],
