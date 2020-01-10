@@ -124,6 +124,7 @@ export function build(config?: JsxsConfig) {
       if(err) rej(err)
       if(stats.hasErrors()) rej(stats.toString())
       else {
+        console.log(outputFs.data)
         buildCallback(err, stats, config)
         res()
       }
