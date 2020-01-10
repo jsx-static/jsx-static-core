@@ -1,6 +1,6 @@
 {
   "name": "jsx-static",
-  "version": "0.1.3",
+  "version": "1.1.1",
   "description": "a static site generator built on react technologies",
   "main": "lib/src/index.js",
   "types": "lib/src/index.d.ts",

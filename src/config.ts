@@ -263,7 +263,6 @@ export function getPacker(config: JsxsConfig, outputFs: any): webpack.Compiler {
         // @ts-ignore // for some reason MiniCssExtractPlugin has not updated this, 
         //TODO: check if deprecated
         moduleFilename: chunk => {
-          console.log("heck")
           return path.posix.relative(config.inRoot.replace(/\\/g, "/"), chunk.entryModule.rawRequest).replace(styleRegex, ".css")
         },
         esModule: true

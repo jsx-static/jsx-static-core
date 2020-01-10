@@ -1,4 +1,4 @@
-import { getPacker, JsxsConfig, getJsxsConfig } from "./config"
+import { getPacker, JsxsConfig, getJsxsConfig, defaultConfig } from "./config"
 import { compilePage } from "./compiler"
 import path from "path"
 import webpack from "webpack"
@@ -80,7 +80,6 @@ const buildCallback = async (err: any, stats: webpack.Stats, config: JsxsConfig)
     if(outputFsData['assets']) {
       const promises = [] 
       recursiveMfsReader(outputFsData['assets'], "", (file, data) => {
-        console.log(file)
         promises.push(new Promise((res, rej) => {
           const outputDir = path.posix.join(config.outRoot, config.outputDir, "assets", path.dirname(file))
           if(!config.outputFs.existsSync(outputDir)) config.outputFs.mkdirSync(outputDir, { recursive: true })
@@ -124,7 +123,6 @@ export function build(config?: JsxsConfig) {
       if(err) rej(err)
       if(stats.hasErrors()) rej(stats.toString())
       else {
-        console.log(outputFs.data)
         buildCallback(err, stats, config)
         res()
       }
@@ -135,4 +133,8 @@ export function build(config?: JsxsConfig) {
 export default {
   build,
   watch
+}
+
+export {
+  defaultConfig
 }
