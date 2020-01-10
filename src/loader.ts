@@ -14,11 +14,12 @@ export default function(source) {
   const compressedSrc = source.replace(/\s+(?=(?:[^\'"]*[\'"][^\'"]*[\'"])*[^\'"]*$)/g, "")
 
   assets = compressedSrc.match(/(src|href)\=(["\'])(?:(?=(\\?))\3.)*?\2/ig)
-    .filter(f => !f.match(/https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/))
   if(assets && assets.length > 0) {
-    assets = assets.map((a: string) => 
-      a.replace(/src=|href=/, "").trim().slice(1, - 1)
-    )
+    assets = assets
+      .filter(f => !f.match(/https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/) || f === "#" || f === "")
+      .map((a: string) => 
+        a.replace(/src=|href=/, "").trim().slice(1, - 1)
+      )
   } else return callback(null, source)
 
   const promises = []
