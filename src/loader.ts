@@ -13,7 +13,8 @@ export default function(source) {
   // remove whitespace (outside quoutes)
   const compressedSrc = source.replace(/\s+(?=(?:[^\'"]*[\'"][^\'"]*[\'"])*[^\'"]*$)/g, "")
 
-  assets = compressedSrc.match(/(src|href)\=(["\'])(?:(?=(\\?))\3.)*?\2/g)
+  assets = compressedSrc.match(/(src|href)\=(["\'])(?:(?=(\\?))\3.)*?\2/ig)
+    .filter(f => !f.match(/https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/))
   if(assets && assets.length > 0) {
     assets = assets.map((a: string) => 
       a.replace(/src=|href=/, "").trim().slice(1, - 1)
@@ -26,7 +27,6 @@ export default function(source) {
     // images should be processed as standard dependencies
     // everything else should be processed as its own entry
     if(!asset.match(imgRegex)) {
-      console.log("oof")
       this.addDependency(asset)
       promises.push(new Promise((res, rej) => {
         const dep = SingleEntryPlugin.createDependency(asset, assets)
