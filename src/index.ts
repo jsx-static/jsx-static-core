@@ -62,9 +62,14 @@ function buildDir(dir: any, dirName: string, stats: webpack.Stats, config: JsxsC
 }
 
 const buildCallback = async (err: any, stats: webpack.Stats, config: JsxsConfig) => {
-  if(err) console.error(err)
-  else if(stats.hasErrors()) console.error(stats.toString())
-  else {
+  console.log("heck")
+  if(err) {
+    console.log(err)
+    if(config.hooks && config.hooks.compileError) config.hooks.compileError(err)
+  } else if(stats.hasErrors()) {
+    console.log(stats.toString())
+    if(config.hooks && config.hooks.compileError) config.hooks.compileError(stats.toString())
+  } else {
     //@ts-ignore // data isn't normally a part of a fs but in this case it is because it will always be memfs
     let outputFsData = stats.compilation.compiler.outputFileSystem.data
     if(outputFsData["__jsxs_data__.js"]) {
@@ -90,7 +95,10 @@ const buildCallback = async (err: any, stats: webpack.Stats, config: JsxsConfig)
         }))
       })
   
-      await Promise.all(promises)
+      await Promise.all(promises).catch(err => {
+        console.log(err)
+        if(config.hooks && config.hooks.compileError) config.hooks.compileError(err)
+      })
     }
 
     if(config.hooks && config.hooks.postSiteEmit) config.hooks.postSiteEmit()

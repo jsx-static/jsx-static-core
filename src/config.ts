@@ -20,6 +20,7 @@ export interface JsxsConfig {
     postProcess?: (source: string) => string
     postSiteEmit?: () => void
     postDataEmit?: () => void
+    compileError?: (error: any) => void
   }
 }
 

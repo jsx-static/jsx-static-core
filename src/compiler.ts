@@ -15,7 +15,7 @@ function getHTML(config: JsxsConfig, page: object, filename: string): string {
     let html = DOCTYPE + ReactDOMServer.renderToStaticMarkup(page)
     return html
   } else {
-    console.error(filename, " is not a valid react element")
+    if(config.hooks && config.hooks.compileError) config.hooks.compileError(`(${ filename }) is not a valid react element`)
     return "<h1>not a valid react element</h1>" //TODO: make a better error page
   }
 }
@@ -36,6 +36,7 @@ export function compilePage(config: JsxsConfig, filename: string, source: string
             filename: instanceData.filename
           }))
         } else {
+          if(config.hooks && config.hooks.compileError) config.hooks.compileError(`(${ filename }) Data returned from \`iterator\` must be an array!`)
           console.error(`(${ filename }) Data returned from \`iterator\` must be an array!`)
           return [] // nothing returned because the iterator is basically empty
         }
@@ -52,10 +53,8 @@ export function compilePage(config: JsxsConfig, filename: string, source: string
       }]
     }
   } catch(err) {
+    config.hooks && config.hooks.compileError && config.hooks.compileError(err)
     console.error(`(${ filename }) Component threw an error: ${err}`)
-    return [{
-      html: `<h1>Component threw an error: ${err}</h1>`, //TODO: better error page
-      filename
-    }]
+    return []
   }
 }
