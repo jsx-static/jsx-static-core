@@ -27,22 +27,19 @@ export default function(source, a, b, c, d) {
   // i hate windows
   const iPath = options.config.inputFs === fs ? path : path.posix
 
-
-  // const imports = assets.map(a => `import "${a}"\n`).join("")
-  // callback(null, imports + source)
-
   const promises = []
   const imports = []
   for(let asset of assets) {
+    // images should be processed as standard dependencies
+    // everything else should be processed as its own entry
     if(!asset.match(imgRegex)) {
       this.addDependency(asset)
       promises.push(new Promise((res, rej) => {
-        // console.log((this._compilation.dependencyFactories.entries()))
         const dep = SingleEntryPlugin.createDependency(asset, assets)
         // style should be emited by the MiniCssExtractPlugin
         //TODO: figure out a way for webpack to process but not emit the raw js css
         const name = asset.match(styleRegex) ? path.posix.join("__asset", asset) : asset
-  
+        source = source.replace(asset, asset.replace(styleRegex, ".css"))
         this._compilation.addEntry(this.context, dep, name, (err, module) => {
           if(err) rej(err)
           res()
@@ -56,7 +53,6 @@ export default function(source, a, b, c, d) {
   Promise.all(promises).then(() => {
     callback(null, imports.join("") + source)
   }).catch((err) => {
-    console.error(err)
     callback(err)
     this.emitError(err)
   })
