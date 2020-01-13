@@ -16,18 +16,20 @@ export default function(source) {
   assets = compressedSrc.match(/(src|href)\=(["\'])(?:(?=(\\?))\3.)*?\2/ig)
   if(assets && assets.length > 0) {
     assets = assets
-      .filter(f => !f.match(/https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/) || f === "#" || f === "")
-      .map((a: string) => 
-        a.replace(/src=|href=/, "").trim().slice(1, - 1)
-      )
+      .map((a: string) => a.replace(/src=|href=/, "").trim().slice(1, - 1))
+      .filter(f => !(f.match(/https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/) || f === "#" || f === ""))
   } else return callback(null, source)
 
   const promises = []
   const imports = []
   for(let asset of assets) {
     // images should be processed as standard dependencies
-    // everything else should be processed as its own entry
-    if(!asset.match(imgRegex)) {
+    // jsx files should process the source but not the file as they are already entries
+    // html files should be ignored
+    // everything else (styles & js) should be processed as its own entry
+    if(asset.match(/\.(jsx)$/gi)) {
+      source = source.replace(asset, asset.replace(/\.(jsx)$/gi, ".html"))
+    } else if(!asset.match(imgRegex)) {
       this.addDependency(asset)
       promises.push(new Promise((res, rej) => {
         const dep = SingleEntryPlugin.createDependency(asset, assets)
@@ -40,7 +42,7 @@ export default function(source) {
           res()
         })
       }))
-    } else {
+    } else if(!asset.match(/\.(html)$/gi)) {
       imports.push(`import "${ asset }"\n`)
     }
   }
