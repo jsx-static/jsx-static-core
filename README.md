@@ -21,6 +21,23 @@ If you don't see something you want feel free to make an issue.
 
 # Docs
 
+## Installation
+Be sure to have both node and npm installed.
+install jsx-static-scripts:
+```
+npm install -g jsx-static-scripts
+```
+This exposes a script to install, and manage jsxs projects.
+To create a project:
+```
+jsxs init [project directory]
+```
+cd into your project then to start and serve a project:
+```
+npm start
+```
+And that's it, you now have a jsxs project. There are other options but they are not covered here, use the help command.
+
 ## Introduction
 Each file in the site directory (by default `/site`) becomes a webpage. This is done by compiling the exported react component into HTML. For example:
 
