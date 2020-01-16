@@ -9,12 +9,11 @@ This is not a way to create a webapp. This is a way to create a static site. Thi
 
 ## Planned features
 Jsx static is still very young and there are many missing features, these are the planned features in roughly order of importance:
-- Assets (stylesheets, javascript, images, etc.)
-- Native style compilation (Sass, Less, Stylus)
+- Native style compilation (~~Sass~~, Less, Stylus)
 - Arbitrary asset data injection
-- Create react app style project generator
 - Async data injection
 - Middle ware plugins for making site generation even easier
+  - markdown processor
 
 If you don't see something you want feel free to make an issue.
 
@@ -90,7 +89,7 @@ This is a bit useless so far. The main reason you may want to use this is for th
 
 ```js
 // data/index.js
-export default {
+global.jsxsData = {
   hello: "Hello jsxs"
 }
 ```
@@ -131,7 +130,7 @@ First start with some data:
 
 ```js
 // data/index.js
-global.data = {
+global.jsxsData = {
   blogPosts: [
     {
       title: "Why turtles are great",
